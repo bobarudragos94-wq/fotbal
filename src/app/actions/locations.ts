@@ -1,0 +1,205 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/db";
+import {
+  locations,
+  locationMembers,
+  locationRules,
+  joinRequests,
+  auditLogs,
+} from "@/db/schema";
+import { requireUser } from "@/lib/auth";
+import { assertSuperAdmin, assertLocationAdmin, getMembership } from "@/lib/permissions";
+import { newId, inviteCode } from "@/lib/ids";
+import { ActionResult, fail, ok, guard } from "@/lib/actionResult";
+
+const s = (v: FormDataEntryValue | null) => (v ?? "").toString().trim();
+
+async function log(locationId: string | null, actorUserId: string, action: string, detail?: string) {
+  await db.insert(auditLogs).values({ id: newId(), locationId, actorUserId, action, detail: detail ?? null });
+}
+
+/* ----------------------------- Super admin ----------------------------- */
+
+export async function createLocationAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    assertSuperAdmin(user);
+    const name = s(form.get("name"));
+    if (name.length < 2) return fail("Location name is required.");
+
+    const id = newId();
+    await db.insert(locations).values({
+      id,
+      name,
+      address: s(form.get("address")) || null,
+      description: s(form.get("description")) || null,
+      inviteCode: inviteCode(),
+      createdBy: user.id,
+    });
+    await db.insert(locationRules).values({ locationId: id, content: s(form.get("rules")) || "", updatedBy: user.id });
+    await log(id, user.id, "location.create", name);
+    revalidatePath("/super/locations");
+    return ok("Location created.");
+  });
+}
+
+export async function updateLocationAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    const id = s(form.get("locationId"));
+    // super admin or location admin can edit basics
+    if (!user.isSuperAdmin) await assertLocationAdmin(user, id);
+    const name = s(form.get("name"));
+    if (name.length < 2) return fail("Location name is required.");
+    await db
+      .update(locations)
+      .set({
+        name,
+        address: s(form.get("address")) || null,
+        description: s(form.get("description")) || null,
+      })
+      .where(eq(locations.id, id));
+    await log(id, user.id, "location.update", name);
+    revalidatePath(`/super/locations`);
+    revalidatePath(`/app/l/${id}`);
+    return ok("Location updated.");
+  });
+}
+
+export async function deleteLocationAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    assertSuperAdmin(user);
+    const id = s(form.get("locationId"));
+    await db.delete(locations).where(eq(locations.id, id));
+    await log(null, user.id, "location.delete", id);
+    revalidatePath("/super/locations");
+    return ok("Location deleted.");
+  });
+}
+
+export async function setLocationAdminAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    assertSuperAdmin(user);
+    const locationId = s(form.get("locationId"));
+    const targetUserId = s(form.get("userId"));
+    const makeAdmin = s(form.get("role")) === "admin";
+
+    const m = await getMembership(targetUserId, locationId);
+    if (!m) return fail("That user is not a member of this location.");
+    await db
+      .update(locationMembers)
+      .set({ role: makeAdmin ? "admin" : "player" })
+      .where(and(eq(locationMembers.userId, targetUserId), eq(locationMembers.locationId, locationId)));
+    await log(locationId, user.id, makeAdmin ? "admin.grant" : "admin.revoke", targetUserId);
+    revalidatePath("/super/admins");
+    revalidatePath(`/app/l/${locationId}/admin/players`);
+    return ok(makeAdmin ? "Promoted to location admin." : "Admin rights revoked.");
+  });
+}
+
+/* ------------------------------- Joining ------------------------------- */
+
+export async function requestJoinAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    const code = s(form.get("inviteCode")).toUpperCase();
+    const byId = s(form.get("locationId"));
+
+    let loc;
+    if (byId) {
+      loc = (await db.select().from(locations).where(eq(locations.id, byId)).limit(1))[0];
+    } else if (code) {
+      loc = (await db.select().from(locations).where(eq(locations.inviteCode, code)).limit(1))[0];
+    }
+    if (!loc) return fail("Location not found. Check the invite code.");
+
+    const existingMember = await getMembership(user.id, loc.id);
+    if (existingMember) return fail("You are already a member of this location.");
+
+    const pending = await db
+      .select({ id: joinRequests.id })
+      .from(joinRequests)
+      .where(
+        and(
+          eq(joinRequests.locationId, loc.id),
+          eq(joinRequests.userId, user.id),
+          eq(joinRequests.status, "pending")
+        )
+      )
+      .limit(1);
+    if (pending[0]) return fail("You already have a pending request for this location.");
+
+    await db.insert(joinRequests).values({
+      id: newId(),
+      locationId: loc.id,
+      userId: user.id,
+      message: s(form.get("message")) || null,
+    });
+    await log(loc.id, user.id, "join.request");
+    revalidatePath("/app");
+    return ok(`Request sent to ${loc.name}. Waiting for approval.`);
+  });
+}
+
+export async function decideJoinAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    const requestId = s(form.get("requestId"));
+    const approve = s(form.get("decision")) === "approve";
+
+    const req = (await db.select().from(joinRequests).where(eq(joinRequests.id, requestId)).limit(1))[0];
+    if (!req) return fail("Request not found.");
+    if (req.status !== "pending") return fail("This request was already handled.");
+    await assertLocationAdmin(user, req.locationId);
+
+    await db
+      .update(joinRequests)
+      .set({ status: approve ? "approved" : "rejected", decidedBy: user.id, decidedAt: Math.floor(Date.now() / 1000) })
+      .where(eq(joinRequests.id, requestId));
+
+    if (approve) {
+      const already = await getMembership(req.userId, req.locationId);
+      if (!already) {
+        await db.insert(locationMembers).values({
+          id: newId(),
+          locationId: req.locationId,
+          userId: req.userId,
+          role: "player",
+        });
+      }
+    }
+    await log(req.locationId, user.id, approve ? "join.approve" : "join.reject", req.userId);
+    revalidatePath(`/app/l/${req.locationId}/admin/pending`);
+    revalidatePath("/super/pending");
+    return ok(approve ? "Player approved." : "Request rejected.");
+  });
+}
+
+/* -------------------------------- Rules -------------------------------- */
+
+export async function updateRulesAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    const locationId = s(form.get("locationId"));
+    await assertLocationAdmin(user, locationId);
+    const content = s(form.get("content"));
+
+    const existing = (await db.select().from(locationRules).where(eq(locationRules.locationId, locationId)).limit(1))[0];
+    if (existing) {
+      await db
+        .update(locationRules)
+        .set({ content, version: existing.version + 1, updatedBy: user.id, updatedAt: Math.floor(Date.now() / 1000) })
+        .where(eq(locationRules.locationId, locationId));
+    } else {
+      await db.insert(locationRules).values({ locationId, content, updatedBy: user.id });
+    }
+    await log(locationId, user.id, "rules.update");
+    revalidatePath(`/app/l/${locationId}/rules`);
+    return ok("Rules updated.");
+  });
+}

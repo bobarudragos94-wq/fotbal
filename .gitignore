@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+build
+.env
+.env*.local
+local.db
+local.db-*
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+.DS_Store
+drizzle/meta
+
+# python caches from skills
+__pycache__/
+*.pyc
