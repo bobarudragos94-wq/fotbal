@@ -120,15 +120,20 @@ all match/score/rule/payment queries are filtered by `location_id` (directly or 
    which writes `location_members.rating` and clears the votes.
 
 **Match day**
-1. Admin creates a match (`…/admin/new-match`) → status `open`.
+1. Admin creates a match (`…/admin/new-match`) → status `open`, setting **max players** and **number of teams**.
 2. Players RSVP on the match page (Going / Maybe / Can't). When `going` hits `max_players`,
-   further "Going" RSVPs auto-go to the **waitlist**; if someone drops, the first waitlisted
-   player is auto-promoted (admin can also promote manually).
+   further "Going" RSVPs auto-go to the **waitlist**; a player can withdraw at any time and the
+   first waitlisted player is auto-promoted (admin can also promote manually).
 3. Players confirm "I've read the rules".
-4. Admin **locks** participants (snapshots ratings). If anyone is unrated, generation is blocked.
-5. Admin **generates balanced teams** (and can **regenerate** or **drag** players between teams).
-6. Admin enters game scores → standings (points, goal difference) compute live.
-7. Admin tracks **payments** (cost/player auto-computed) and marks the match **finished**.
+4. Admin **locks the list** when it's final → the match becomes `locked` and the **rating vote opens**
+   on the match page for any unrated confirmed players.
+5. Everyone votes 1–4 on unrated players; the admin **confirms each final rating**. Once all confirmed
+   players are rated, the admin **closes the vote & generates teams**.
+6. **Equal teams:** team size = `min(playersPerTeam, floor(confirmed / numTeams))`, so e.g. 16 confirmed
+   with 3 teams → **3 × 5** and the app lists who is left **without a team (Reserves)**. The admin can
+   move players between teams or bench/un-bench reserves, and **regenerate** for a fresh fair split.
+7. Admin enters game scores → standings (points, goal difference) compute live.
+8. Admin tracks **payments** (cost/player auto-computed) and marks the match **finished**.
 
 ---
 
@@ -160,16 +165,20 @@ rating 3 → strength 2
 rating 4 → strength 1
 ```
 
-**Controlled randomization** (not pure random):
+**Controlled randomization, equal team sizes** (not pure random):
 
 1. Convert every player's rating to strength.
-2. Generate ~800 random candidate splits. Each candidate shuffles players, then greedily
-   assigns the strongest remaining player to the currently weakest team (respecting team capacity).
-3. Score each candidate by **spread** = `max(team strength) − min(team strength)`.
-4. Keep the best-spread candidates and pick one **at random** among them.
+2. Team size = `min(playersPerTeam, floor(confirmed / numTeams))` → teams come out **equal**;
+   any extra confirmed players become **reserves (no team)**, which the app reports by name.
+3. Generate ~800 random candidate splits. Each candidate shuffles players, randomly picks which
+   `teamSize × numTeams` play (the rest are that candidate's leftovers), then greedily assigns the
+   strongest remaining player to the currently weakest team.
+4. Score each candidate by **spread** = `max(team strength) − min(team strength)`.
+5. Keep the best-spread candidates and pick one **at random** among them.
 
-→ Teams are always near-balanced (spread typically 0–2), and **Regenerate** yields a fresh
-but still fair split. Example output for 18 players / 3 teams: `Team A 15 · Team B 15 · Team C 14`.
+→ Teams are always equal-sized and near-balanced (spread typically 0–2), and **Regenerate** yields a
+fresh but still fair split. Examples: 18 players / 3 teams → `3 × 6` (no reserves);
+16 players / 3 teams → `3 × 5`, with 1 player listed under **Reserves**.
 
 Scoring/standings (`src/lib/standings.ts`): win = 3, draw = 1, loss = 0; ranked by points,
 then goal difference, then goals for.

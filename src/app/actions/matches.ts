@@ -298,7 +298,10 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
     }
 
     const players: BalancePlayer[] = going.map((p) => ({ userId: p.userId, rating: p.rating! }));
-    const result = generateBalancedTeams(players, m.numTeams);
+    // Equal teams: cap team size at the match's playersPerTeam but no bigger than
+    // the squad allows (floor(N / numTeams)). Extras become reserves (no team).
+    const teamSize = Math.max(1, Math.min(m.playersPerTeam, Math.floor(going.length / m.numTeams)));
+    const result = generateBalancedTeams(players, m.numTeams, teamSize);
 
     // Replace any existing teams + assignments.
     await db.delete(teams).where(eq(teams.matchId, matchId));
@@ -322,7 +325,13 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
     }
     await db.update(matches).set({ teamsGeneratedAt: Math.floor(Date.now() / 1000) }).where(eq(matches.id, matchId));
     revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
-    return ok(`Teams generated (strength spread: ${result.spread}).`);
+    const leftover = result.leftoverIds.length;
+    const teamSummary = `${m.numTeams} teams of ${teamSize}`;
+    return ok(
+      leftover > 0
+        ? `${teamSummary} generated (spread ${result.spread}). ${leftover} player(s) left without a team — see Reserves.`
+        : `${teamSummary} generated (spread ${result.spread}).`
+    );
   });
 }
 
@@ -332,7 +341,8 @@ export async function movePlayerToTeamAction(_p: ActionResult | null, form: Form
     const user = await requireUser();
     const matchId = s(form.get("matchId"));
     const userId = s(form.get("userId"));
-    const teamId = s(form.get("teamId"));
+    const teamIdRaw = s(form.get("teamId"));
+    const teamId = teamIdRaw || null; // empty -> bench to reserves
     const m = await loadMatch(matchId);
     if (!m) return fail("Match not found.");
     await assertLocationAdmin(user, m.locationId);
@@ -343,7 +353,7 @@ export async function movePlayerToTeamAction(_p: ActionResult | null, form: Form
       .where(and(eq(matchParticipants.matchId, matchId), eq(matchParticipants.userId, userId)));
     await recomputeTeamStrengths(matchId, m.locationId);
     revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
-    return ok("Player moved.");
+    return ok(teamId ? "Player moved." : "Player benched to reserves.");
   });
 }
 

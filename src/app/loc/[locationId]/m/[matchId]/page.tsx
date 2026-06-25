@@ -8,6 +8,7 @@ import {
   getGames,
   getMatchStandings,
   getRules,
+  getUnratedPlayers,
   type ParticipantRow,
 } from "@/lib/queries";
 import {
@@ -22,12 +23,14 @@ import {
   deleteGameAction,
   togglePaidAction,
 } from "@/app/actions/matches";
+import { castRatingVoteAction, setPlayerRatingAction } from "@/app/actions/ratings";
 import { AppBar } from "@/components/AppBar";
 import { Card, SectionTitle, Badge, StatusBadge, Avatar, RatingDot, EmptyState } from "@/components/ui";
 import { ActionForm, SubmitButton, InlineAction } from "@/components/Form";
 import { SelectSubmit } from "@/components/SelectSubmit";
 import { Icon } from "@/components/icons";
 import { formatDateTime, money } from "@/lib/format";
+import { RATING_LABELS } from "@/lib/rating";
 
 const TEAM_STYLES = [
   "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900",
@@ -67,6 +70,14 @@ export default async function MatchPage({
   const costPerPlayer = match.pitchCost != null && going.length > 0 ? match.pitchCost / going.length : null;
   const teamName = new Map(teams.map((t) => [t.id, t.name]));
   const editable = match.status !== "finished";
+
+  // Confirmed players still without a team after generation (reserves).
+  const reserves = teams.length > 0 ? going.filter((p) => p.teamId == null) : [];
+
+  // Match-scoped rating voting (starts once the list is locked).
+  const goingIds = new Set(going.map((p) => p.userId));
+  const allUnrated = match.status === "locked" ? await getUnratedPlayers(params.locationId, ctx.user.id) : [];
+  const matchUnrated = allUnrated.filter((u) => goingIds.has(u.userId));
 
   return (
     <>
@@ -159,31 +170,37 @@ export default async function MatchPage({
             <div className="space-y-3">
               {match.status === "open" && (
                 <>
-                  {unratedGoing.length > 0 && (
-                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                      {unratedGoing.length} confirmed player(s) are unrated. Collect ratings on the{" "}
-                      <Link href={`${base}/admin/ratings`} className="font-semibold underline">Ratings</Link> page before generating teams.
-                    </p>
-                  )}
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {going.length} confirmed{going.length >= match.numTeams
+                      ? ` → ${match.numTeams} teams of ${Math.min(match.playersPerTeam, Math.floor(going.length / match.numTeams))}`
+                      : ""}.
+                    {unratedGoing.length > 0
+                      ? ` Locking the list starts the rating vote for ${unratedGoing.length} unrated player(s).`
+                      : " Lock the list when everyone's in."}
+                  </p>
                   <InlineAction action={lockMatchAction} hidden={{ matchId: match.id }} className="btn-primary w-full"
-                    confirm="Lock the participant list? Players won't be able to change their RSVP.">
-                    Lock participants ({going.length})
+                    confirm="Lock the participant list? Players won't be able to change their RSVP, and the rating vote opens.">
+                    Lock list & start voting ({going.length})
                   </InlineAction>
                 </>
               )}
 
               {match.status === "locked" && (
                 <>
-                  <div className="grid grid-cols-2 gap-2">
-                    <InlineAction action={generateTeamsAction} hidden={{ matchId: match.id }}
-                      className="btn-primary w-full">
-                      {teams.length ? "Regenerate" : "Generate teams"}
+                  {matchUnrated.length > 0 ? (
+                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                      Rating vote in progress — {matchUnrated.length} player(s) still need a confirmed rating below.
+                      Confirm them all to close the vote and generate teams.
+                    </p>
+                  ) : (
+                    <InlineAction action={generateTeamsAction} hidden={{ matchId: match.id }} className="btn-primary w-full">
+                      {teams.length ? "Regenerate teams" : "Close vote & generate teams"}
                     </InlineAction>
-                    <InlineAction action={setMatchStatusAction} hidden={{ matchId: match.id, status: "open" }}
-                      className="btn-ghost w-full">
-                      Reopen RSVP
-                    </InlineAction>
-                  </div>
+                  )}
+                  <InlineAction action={setMatchStatusAction} hidden={{ matchId: match.id, status: "open" }}
+                    className="btn-ghost w-full">
+                    Reopen RSVP
+                  </InlineAction>
                   {teams.length > 0 && (
                     <InlineAction action={setMatchStatusAction} hidden={{ matchId: match.id, status: "finished" }}
                       className="btn-accent w-full" confirm="Mark this match as finished?">
@@ -206,6 +223,72 @@ export default async function MatchPage({
               )}
             </div>
           </Card>
+        )}
+
+        {/* Rating vote — starts after the list is locked */}
+        {match.status === "locked" && matchUnrated.length > 0 && (
+          <section>
+            <SectionTitle>Rate the unrated</SectionTitle>
+            <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+              The list is locked. Vote where these players belong (1 = top, 4 = beginner).
+              {ctx.isAdmin ? " As admin, confirm each final rating to close the vote." : " The admin confirms the final rating."}
+            </p>
+            <div className="space-y-3">
+              {matchUnrated.map((p) => (
+                <Card key={p.userId}>
+                  <div className="mb-3 flex items-center gap-3">
+                    <Avatar name={p.name} url={p.avatarUrl} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">{p.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {p.proposal.count > 0
+                          ? `${p.proposal.count} vote(s) · proposed ★${p.proposal.rounded} (avg ${p.proposal.mean})`
+                          : "No votes yet"}
+                      </p>
+                    </div>
+                    {p.myVote && <Badge tone="brand">You: ★{p.myVote}</Badge>}
+                  </div>
+
+                  {p.userId !== ctx.user.id && (
+                    <>
+                      <p className="mb-1 text-xs font-medium text-slate-500 dark:text-slate-400">Your vote</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[1, 2, 3, 4].map((r) => (
+                          <InlineAction
+                            key={r}
+                            action={castRatingVoteAction}
+                            hidden={{ locationId: params.locationId, targetUserId: p.userId, rating: String(r) }}
+                            className={`btn-sm w-full flex-col gap-0 py-2 ${p.myVote === r ? "btn-primary" : "btn-ghost"}`}
+                          >
+                            <span className="text-base font-bold">{r}</span>
+                            <span className="text-[10px] font-normal opacity-80">{RATING_LABELS[r]}</span>
+                          </InlineAction>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {ctx.isAdmin && (
+                    <>
+                      <p className="mb-1 mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">Confirm final rating</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[1, 2, 3, 4].map((r) => (
+                          <InlineAction
+                            key={r}
+                            action={setPlayerRatingAction}
+                            hidden={{ locationId: params.locationId, targetUserId: p.userId, rating: String(r) }}
+                            className={`btn-sm w-full ${p.proposal.rounded === r ? "btn-accent" : "btn-ghost"}`}
+                          >
+                            ★{r}
+                          </InlineAction>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Teams */}
@@ -232,7 +315,7 @@ export default async function MatchPage({
                               name="teamId"
                               value={t.id}
                               hidden={{ matchId: match.id, userId: p.userId }}
-                              options={teams.map((tt) => ({ value: tt.id, label: tt.name }))}
+                              options={[...teams.map((tt) => ({ value: tt.id, label: tt.name })), { value: "", label: "Reserve" }]}
                             />
                           ) : (
                             <RatingDot rating={p.rating} />
@@ -243,9 +326,40 @@ export default async function MatchPage({
                   </Card>
                 );
               })}
+
+              {/* Reserves — confirmed players left without a team */}
+              {reserves.length > 0 && (
+                <Card className="border-2 border-dashed border-slate-300 dark:border-slate-700">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="font-bold text-slate-600 dark:text-slate-300">Reserves · no team</p>
+                    <Badge tone="slate">{reserves.length}</Badge>
+                  </div>
+                  <div className="space-y-1.5">
+                    {reserves.map((p) => (
+                      <div key={p.userId} className="flex items-center gap-2">
+                        <Avatar name={p.name} url={p.avatarUrl} size={28} />
+                        <span className="flex-1 truncate text-sm font-medium">{p.name}</span>
+                        {ctx.isAdmin && match.status !== "finished" ? (
+                          <SelectSubmit
+                            action={movePlayerToTeamAction}
+                            name="teamId"
+                            value=""
+                            hidden={{ matchId: match.id, userId: p.userId }}
+                            options={[{ value: "", label: "Reserve" }, ...teams.map((tt) => ({ value: tt.id, label: `→ ${tt.name}` }))]}
+                          />
+                        ) : (
+                          <RatingDot rating={p.rating} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </div>
             {ctx.isAdmin && match.status !== "finished" && (
-              <p className="mt-2 text-center text-xs text-slate-400">Use the dropdowns to move players between teams.</p>
+              <p className="mt-2 text-center text-xs text-slate-400">
+                Use the dropdowns to move players between teams or bench them as reserves.
+              </p>
             )}
           </section>
         )}
