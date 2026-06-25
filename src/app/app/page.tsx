@@ -32,7 +32,12 @@ export default async function MyLocationsPage() {
         )}
 
         <section>
-          <SectionTitle action={<Link href="/app/join" className="text-sm font-semibold text-brand-600 dark:text-brand-400">Join +</Link>}>
+          <SectionTitle action={
+            <span className="flex gap-3">
+              <Link href="/app/new-location" className="text-sm font-semibold text-brand-600 dark:text-brand-400">New +</Link>
+              <Link href="/app/join" className="text-sm font-semibold text-brand-600 dark:text-brand-400">Join</Link>
+            </span>
+          }>
             Your pitches
           </SectionTitle>
           {locs.length === 0 ? (

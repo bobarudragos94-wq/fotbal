@@ -24,6 +24,7 @@ import {
   togglePaidAction,
 } from "@/app/actions/matches";
 import { castRatingVoteAction, setPlayerRatingAction } from "@/app/actions/ratings";
+import { fillMatchWithDemosAction } from "@/app/actions/demo";
 import { AppBar } from "@/components/AppBar";
 import { Card, SectionTitle, Badge, StatusBadge, Avatar, RatingDot, EmptyState } from "@/components/ui";
 import { ActionForm, SubmitButton, InlineAction } from "@/components/Form";
@@ -181,6 +182,9 @@ export default async function MatchPage({
                   <InlineAction action={lockMatchAction} hidden={{ matchId: match.id }} className="btn-primary w-full"
                     confirm="Lock the participant list? Players won't be able to change their RSVP, and the rating vote opens.">
                     Lock list & start voting ({going.length})
+                  </InlineAction>
+                  <InlineAction action={fillMatchWithDemosAction} hidden={{ matchId: match.id }} className="btn-ghost w-full">
+                    Fill with demo players (testing)
                   </InlineAction>
                 </>
               )}

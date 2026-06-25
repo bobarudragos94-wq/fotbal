@@ -21,12 +21,12 @@ async function log(locationId: string | null, actorUserId: string, action: strin
   await db.insert(auditLogs).values({ id: newId(), locationId, actorUserId, action, detail: detail ?? null });
 }
 
-/* ----------------------------- Super admin ----------------------------- */
+/* ----------------------------- Locations ----------------------------- */
 
+/** Any logged-in user can create a location; the creator becomes its admin. */
 export async function createLocationAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
   return guard(async () => {
     const user = await requireUser();
-    assertSuperAdmin(user);
     const name = s(form.get("name"));
     if (name.length < 2) return fail("Location name is required.");
 
@@ -40,8 +40,16 @@ export async function createLocationAction(_p: ActionResult | null, form: FormDa
       createdBy: user.id,
     });
     await db.insert(locationRules).values({ locationId: id, content: s(form.get("rules")) || "", updatedBy: user.id });
+    // Creator joins as admin so the location shows up in their list and they can manage it.
+    await db.insert(locationMembers).values({
+      id: newId(),
+      locationId: id,
+      userId: user.id,
+      role: "admin",
+    });
     await log(id, user.id, "location.create", name);
     revalidatePath("/super/locations");
+    revalidatePath("/app");
     return ok("Location created.");
   });
 }
