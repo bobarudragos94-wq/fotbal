@@ -41,11 +41,17 @@ export async function destroySession(): Promise<void> {
 export type AuthUser = {
   id: string;
   name: string;
+  nickname: string | null;
   email: string;
   phone: string | null;
   avatarUrl: string | null;
   isSuperAdmin: boolean;
 };
+
+/** Name to show in the UI: nickname if set, otherwise real name. */
+export function display(user: { nickname: string | null; name: string }): string {
+  return user.nickname && user.nickname.trim() ? user.nickname : user.name;
+}
 
 /** Returns the current user or null. Cleans up expired sessions. */
 export async function getCurrentUser(): Promise<AuthUser | null> {
@@ -56,6 +62,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     .select({
       id: users.id,
       name: users.name,
+      nickname: users.nickname,
       email: users.email,
       phone: users.phone,
       avatarUrl: users.avatarUrl,

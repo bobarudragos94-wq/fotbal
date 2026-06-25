@@ -1,4 +1,5 @@
 import { requirePageUser } from "@/lib/page";
+import { display } from "@/lib/auth";
 import { updateProfileAction, logoutAction } from "@/app/actions/auth";
 import { AppBar } from "@/components/AppBar";
 import { Card, Avatar, Badge } from "@/components/ui";
@@ -12,9 +13,9 @@ export default async function ProfilePage() {
       <AppBar title="Profile" />
       <div className="space-y-5 px-4 py-4">
         <Card className="flex items-center gap-4">
-          <Avatar name={user.name} url={user.avatarUrl} size={56} />
+          <Avatar name={display(user)} url={user.avatarUrl} size={56} />
           <div className="min-w-0">
-            <p className="truncate text-lg font-bold">{user.name}</p>
+            <p className="truncate text-lg font-bold">{display(user)}</p>
             <p className="truncate text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
             {user.isSuperAdmin && <Badge tone="brand">Super Admin</Badge>}
           </div>
@@ -24,7 +25,11 @@ export default async function ProfilePage() {
           <h2 className="mb-3 font-semibold">Edit profile</h2>
           <ActionForm action={updateProfileAction} className="space-y-4">
             <div>
-              <label className="label" htmlFor="name">Name</label>
+              <label className="label" htmlFor="nickname">Nickname <span className="text-slate-400">(shown to everyone)</span></label>
+              <input id="nickname" name="nickname" defaultValue={user.nickname ?? ""} className="input" required minLength={2} maxLength={24} />
+            </div>
+            <div>
+              <label className="label" htmlFor="name">Full name <span className="text-slate-400">(private)</span></label>
               <input id="name" name="name" defaultValue={user.name} className="input" required />
             </div>
             <div>

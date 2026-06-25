@@ -21,6 +21,7 @@ const now = sql`(unixepoch())`;
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  nickname: text("nickname"), // public display name; falls back to `name` when empty
   email: text("email").notNull(),
   phone: text("phone"),
   avatarUrl: text("avatar_url"),

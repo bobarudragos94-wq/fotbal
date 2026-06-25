@@ -22,8 +22,12 @@ export default async function RegisterPage() {
 
       <ActionForm action={registerAction} className="mt-6 space-y-4">
         <div>
-          <label className="label" htmlFor="name">Full name</label>
+          <label className="label" htmlFor="name">Full name <span className="text-slate-400">(private)</span></label>
           <input id="name" name="name" required className="input" placeholder="Andrei Popescu" autoComplete="name" />
+        </div>
+        <div>
+          <label className="label" htmlFor="nickname">Nickname <span className="text-slate-400">(shown to everyone)</span></label>
+          <input id="nickname" name="nickname" required minLength={2} maxLength={24} className="input" placeholder="e.g. Speedy" />
         </div>
         <div>
           <label className="label" htmlFor="email">Email</label>

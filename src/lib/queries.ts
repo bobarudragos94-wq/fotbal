@@ -16,6 +16,9 @@ import {
 import { computeStandings } from "./standings";
 import { proposeRating } from "./rating";
 
+/** Public display name: the nickname if set, otherwise the real name. */
+export const displayName = sql<string>`coalesce(nullif(${users.nickname}, ''), ${users.name})`;
+
 export async function getUserLocations(userId: string) {
   const rows = await db
     .select({
@@ -68,7 +71,7 @@ export async function getLocationMembers(locationId: string) {
   return db
     .select({
       userId: users.id,
-      name: users.name,
+      name: displayName,
       email: users.email,
       avatarUrl: users.avatarUrl,
       role: locationMembers.role,
@@ -87,7 +90,7 @@ export async function getPendingJoinRequests(locationId: string) {
       message: joinRequests.message,
       createdAt: joinRequests.createdAt,
       userId: users.id,
-      name: users.name,
+      name: displayName,
       email: users.email,
       phone: users.phone,
       avatarUrl: users.avatarUrl,
@@ -101,7 +104,7 @@ export async function getPendingJoinRequests(locationId: string) {
 /** Unrated members + aggregated community votes; flags whether `voterId` voted. */
 export async function getUnratedPlayers(locationId: string, voterId: string) {
   const unrated = await db
-    .select({ userId: users.id, name: users.name, avatarUrl: users.avatarUrl })
+    .select({ userId: users.id, name: displayName, avatarUrl: users.avatarUrl })
     .from(locationMembers)
     .innerJoin(users, eq(users.id, locationMembers.userId))
     .where(and(eq(locationMembers.locationId, locationId), sql`${locationMembers.rating} is null`))
@@ -162,7 +165,7 @@ export async function getMatchParticipants(matchId: string, locationId: string):
     .select({
       participantId: matchParticipants.id,
       userId: users.id,
-      name: users.name,
+      name: displayName,
       avatarUrl: users.avatarUrl,
       status: matchParticipants.status,
       rating: locationMembers.rating,

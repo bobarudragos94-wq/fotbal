@@ -254,7 +254,8 @@ in `./drizzle` if you prefer migrations over `push`.)
    |-----|-------|
    | `TURSO_DATABASE_URL` | `libsql://<your-db>.turso.io` |
    | `TURSO_AUTH_TOKEN` | token from `turso db tokens create` |
-   | `SESSION_SECRET` | `openssl rand -base64 32` |
+
+   (Sessions use random DB-backed tokens, so no extra auth secret is needed.)
 
 3. **Deploy.** Run `npm run db:push` once (locally, pointed at the Turso URL) to create the
    schema, and optionally `npm run db:seed`.
@@ -268,7 +269,14 @@ No extra config needed — it runs on Vercel's default Node serverless runtime.
 
 `npm run db:seed` creates:
 
-**Super admin** — `admin@fgm.app` / `admin1234` (override via `SEED_SUPERADMIN_*` env).
+**Super admin (also a player)** — `bobarudragos94@gmail.com` / `noobsaibot` (override via
+`SEED_SUPERADMIN_*` env). The super admin is global (manages every location) **and** is added as a
+player at Teren Pipera, so the same account can RSVP, get rated and be placed on teams — a user can
+be admin in one place and a player in another.
+
+**Display names / nicknames.** Each account has a private real `name` and a public `nickname` chosen
+at registration (editable in Profile). The app shows the **nickname** everywhere players appear; it
+falls back to the real name only if no nickname is set.
 
 **Players** — `player1@fgm.app … player20@fgm.app`, password `player1234`:
 - `player1` & `player2` → **admins of Teren Pipera**

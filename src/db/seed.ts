@@ -23,8 +23,9 @@ import { generateBalancedTeams, TEAM_NAMES, type BalancePlayer } from "../lib/te
  * Run with: npm run db:seed
  */
 
-const SUPER_EMAIL = process.env.SEED_SUPERADMIN_EMAIL ?? "admin@fgm.app";
-const SUPER_PASS = process.env.SEED_SUPERADMIN_PASSWORD ?? "admin1234";
+const SUPER_EMAIL = process.env.SEED_SUPERADMIN_EMAIL ?? "bobarudragos94@gmail.com";
+const SUPER_PASS = process.env.SEED_SUPERADMIN_PASSWORD ?? "noobsaibot";
+const SUPER_NICK = process.env.SEED_SUPERADMIN_NICKNAME ?? "Dragos";
 const DEMO_PASS = "player1234";
 
 async function wipe() {
@@ -41,11 +42,12 @@ async function wipe() {
   await db.delete(users);
 }
 
-async function mkUser(name: string, email: string, password: string, isSuperAdmin = false) {
+async function mkUser(name: string, nickname: string, email: string, password: string, isSuperAdmin = false) {
   const id = newId();
   await db.insert(users).values({
     id,
     name,
+    nickname,
     email: email.toLowerCase(),
     passwordHash: await hashPassword(password),
     isSuperAdmin,
@@ -57,8 +59,8 @@ async function main() {
   console.log("Seeding database…");
   await wipe();
 
-  // --- Super admin ---
-  const superId = await mkUser("Dragos (Super Admin)", SUPER_EMAIL, SUPER_PASS, true);
+  // --- Super admin (also a player, see Pipera membership below) ---
+  const superId = await mkUser("Dragos", SUPER_NICK, SUPER_EMAIL, SUPER_PASS, true);
 
   // --- Demo players (shared pool of people) ---
   const names = [
@@ -70,7 +72,8 @@ async function main() {
   const playerIds: Record<string, string> = {};
   for (let i = 0; i < names.length; i++) {
     const email = `player${i + 1}@fgm.app`;
-    playerIds[names[i]] = await mkUser(names[i], email, DEMO_PASS);
+    const nick = names[i].split(" ")[0]; // demo nickname = first name
+    playerIds[names[i]] = await mkUser(names[i], nick, email, DEMO_PASS);
   }
 
   // --- Locations ---
@@ -117,6 +120,8 @@ async function main() {
     const rating = nm === unratedName ? null : ratingsPip[nm];
     await addMember(pipera, playerIds[nm], role, rating);
   }
+  // The super admin is ALSO a player at Pipera (global super powers + plays here).
+  await addMember(pipera, superId, "player", 2);
 
   // votes for the unrated player (proposes ~2)
   for (const voter of [pip[2], pip[3], pip[4]]) {
@@ -227,8 +232,8 @@ async function main() {
   // print invite codes
   const allLoc = await db.select().from(locations);
   console.log("\n✅ Seed complete.\n");
-  console.log("Super admin:");
-  console.log(`  ${SUPER_EMAIL} / ${SUPER_PASS}`);
+  console.log("Super admin (also a player at Teren Pipera):");
+  console.log(`  ${SUPER_EMAIL} / ${SUPER_PASS}  (nickname: ${SUPER_NICK})`);
   console.log("\nDemo players (password: " + DEMO_PASS + "):");
   console.log(`  player1@fgm.app … player20@fgm.app`);
   console.log(`  player1 & player2 are admins of Teren Pipera`);

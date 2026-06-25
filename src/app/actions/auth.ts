@@ -21,11 +21,13 @@ function str(v: FormDataEntryValue | null): string {
 
 export async function registerAction(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
   const name = str(form.get("name"));
+  const nickname = str(form.get("nickname"));
   const email = str(form.get("email")).toLowerCase();
   const phone = str(form.get("phone"));
   const password = str(form.get("password"));
 
   if (name.length < 2) return fail("Please enter your name.");
+  if (nickname.length < 2) return fail("Please choose a nickname (at least 2 characters).");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("Please enter a valid email.");
   if (password.length < 6) return fail("Password must be at least 6 characters.");
 
@@ -36,6 +38,7 @@ export async function registerAction(_prev: ActionResult | null, form: FormData)
   await db.insert(users).values({
     id,
     name,
+    nickname,
     email,
     phone: phone || null,
     passwordHash: await hashPassword(password),
@@ -71,12 +74,14 @@ export async function updateProfileAction(_prev: ActionResult | null, form: Form
   return guard(async () => {
     const user = await requireUser();
     const name = str(form.get("name"));
+    const nickname = str(form.get("nickname"));
     const phone = str(form.get("phone"));
     const avatarUrl = str(form.get("avatarUrl"));
     if (name.length < 2) return fail("Please enter your name.");
+    if (nickname.length < 2) return fail("Please choose a nickname (at least 2 characters).");
     await db
       .update(users)
-      .set({ name, phone: phone || null, avatarUrl: avatarUrl || null })
+      .set({ name, nickname, phone: phone || null, avatarUrl: avatarUrl || null })
       .where(eq(users.id, user.id));
     revalidatePath("/app/profile");
     return ok("Profile updated.");

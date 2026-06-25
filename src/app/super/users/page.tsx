@@ -3,12 +3,13 @@ import { users, locationMembers } from "@/db/schema";
 import { desc, sql } from "drizzle-orm";
 import { AppBar } from "@/components/AppBar";
 import { Card, Avatar, Badge } from "@/components/ui";
+import { displayName } from "@/lib/queries";
 
 export default async function SuperUsers() {
   const all = await db
     .select({
       id: users.id,
-      name: users.name,
+      name: displayName,
       email: users.email,
       isSuperAdmin: users.isSuperAdmin,
       avatarUrl: users.avatarUrl,

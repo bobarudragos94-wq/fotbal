@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requirePageUser } from "@/lib/page";
+import { display } from "@/lib/auth";
 import { getUserLocations, getUserPendingRequests, getMemberCounts } from "@/lib/queries";
 import { AppBar } from "@/components/AppBar";
 import { PageHeader, Card, SectionTitle, EmptyState, Badge, LinkCard } from "@/components/ui";
@@ -17,7 +18,7 @@ export default async function MyLocationsPage() {
     <>
       <AppBar title="My Locations" />
       <div className="space-y-5 px-4 py-4">
-        <PageHeader title={`Hi, ${user.name.split(" ")[0]} 👋`} subtitle="Pick a pitch to see what's coming up." />
+        <PageHeader title={`Hi, ${display(user).split(" ")[0]} 👋`} subtitle="Pick a pitch to see what's coming up." />
 
         {user.isSuperAdmin && (
           <Link href="/super" className="flex items-center gap-3 rounded-2xl bg-slate-900 p-4 text-white dark:bg-slate-800">

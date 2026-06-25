@@ -6,6 +6,7 @@ import { AppBar } from "@/components/AppBar";
 import { Card, EmptyState, Avatar, Badge } from "@/components/ui";
 import { InlineAction } from "@/components/Form";
 import { Icon } from "@/components/icons";
+import { displayName } from "@/lib/queries";
 
 export default async function SuperPending() {
   const requests = await db
@@ -13,7 +14,7 @@ export default async function SuperPending() {
       id: joinRequests.id,
       message: joinRequests.message,
       locationName: locations.name,
-      name: users.name,
+      name: displayName,
       email: users.email,
       avatarUrl: users.avatarUrl,
     })
