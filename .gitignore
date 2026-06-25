@@ -15,3 +15,6 @@ drizzle/meta
 # python caches from skills
 __pycache__/
 *.pyc
+
+# generated DB init with admin password hash — do not commit
+turso-init.sql
