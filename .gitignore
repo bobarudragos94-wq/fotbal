@@ -18,3 +18,6 @@ __pycache__/
 
 # generated DB init with admin password hash — do not commit
 turso-init.sql
+
+# generated demo players SQL
+sud-arena-demo.sql
