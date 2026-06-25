@@ -111,8 +111,22 @@ export function Chevron() {
   );
 }
 
-export function RatingDot({ rating }: { rating: number | null }) {
-  if (rating == null) return <Badge tone="amber">Unrated</Badge>;
+/**
+ * Rating badge. Final ratings are admin-only: pass `reveal={false}` for
+ * player-facing views to hide the number. "Unrated" stays visible when
+ * `showUnrated` is true (e.g. so players can see who still needs votes).
+ */
+export function RatingDot({
+  rating,
+  reveal = true,
+  showUnrated = true,
+}: {
+  rating: number | null;
+  reveal?: boolean;
+  showUnrated?: boolean;
+}) {
+  if (rating == null) return showUnrated ? <Badge tone="amber">Unrated</Badge> : null;
+  if (!reveal) return null;
   const tone: BadgeTone = rating === 1 ? "green" : rating === 2 ? "brand" : rating === 3 ? "slate" : "red";
   return <Badge tone={tone}>★ {rating}</Badge>;
 }

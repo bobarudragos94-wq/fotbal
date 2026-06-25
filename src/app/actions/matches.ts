@@ -9,7 +9,9 @@ import {
   teams,
   matchGames,
   locationMembers,
+  ratingVotes,
 } from "@/db/schema";
+import { proposeRating } from "@/lib/rating";
 import { requireUser } from "@/lib/auth";
 import {
   assertLocationAdmin,
@@ -292,12 +294,30 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
       )
       .where(and(eq(matchParticipants.matchId, matchId), eq(matchParticipants.status, "going")));
 
+    // Unrated players don't block generation: fall back to their community-vote
+    // average, or a neutral rating derived from the rated players (or 3).
     const unrated = going.filter((p) => p.rating == null);
+    const ratedValues = going.filter((p) => p.rating != null).map((p) => p.rating as number);
+    const neutral = ratedValues.length
+      ? Math.min(4, Math.max(1, Math.round(ratedValues.reduce((s, v) => s + v, 0) / ratedValues.length)))
+      : 3;
+
+    const fallback = new Map<string, number>();
     if (unrated.length > 0) {
-      return fail(`${unrated.length} player(s) still unrated. Confirm all ratings before generating teams.`);
+      const votes = await db
+        .select({ targetUserId: ratingVotes.targetUserId, rating: ratingVotes.rating })
+        .from(ratingVotes)
+        .where(eq(ratingVotes.locationId, m.locationId));
+      for (const p of unrated) {
+        const theirs = votes.filter((v) => v.targetUserId === p.userId).map((v) => v.rating);
+        fallback.set(p.userId, proposeRating(theirs).rounded ?? neutral);
+      }
     }
 
-    const players: BalancePlayer[] = going.map((p) => ({ userId: p.userId, rating: p.rating! }));
+    const players: BalancePlayer[] = going.map((p) => ({
+      userId: p.userId,
+      rating: p.rating ?? fallback.get(p.userId) ?? neutral,
+    }));
     // Equal teams: cap team size at the match's playersPerTeam but no bigger than
     // the squad allows (floor(N / numTeams)). Extras become reserves (no team).
     const teamSize = Math.max(1, Math.min(m.playersPerTeam, Math.floor(going.length / m.numTeams)));
@@ -327,10 +347,11 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     const leftover = result.leftoverIds.length;
     const teamSummary = `${m.numTeams} teams of ${teamSize}`;
+    const autoNote = unrated.length > 0 ? ` ${unrated.length} unrated player(s) used an auto rating.` : "";
     return ok(
-      leftover > 0
+      (leftover > 0
         ? `${teamSummary} generated (spread ${result.spread}). ${leftover} player(s) left without a team — see Reserves.`
-        : `${teamSummary} generated (spread ${result.spread}).`
+        : `${teamSummary} generated (spread ${result.spread}).`) + autoNote
     );
   });
 }

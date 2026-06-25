@@ -191,16 +191,15 @@ export default async function MatchPage({
 
               {match.status === "locked" && (
                 <>
-                  {matchUnrated.length > 0 ? (
+                  {matchUnrated.length > 0 && (
                     <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                      Rating vote in progress — {matchUnrated.length} player(s) still need a confirmed rating below.
-                      Confirm them all to close the vote and generate teams.
+                      {matchUnrated.length} player(s) not confirmed yet. You can confirm ratings below, or just
+                      generate now — unrated players use their vote average (or a neutral rating).
                     </p>
-                  ) : (
-                    <InlineAction action={generateTeamsAction} hidden={{ matchId: match.id }} className="btn-primary w-full">
-                      {teams.length ? "Regenerate teams" : "Close vote & generate teams"}
-                    </InlineAction>
                   )}
+                  <InlineAction action={generateTeamsAction} hidden={{ matchId: match.id }} className="btn-primary w-full">
+                    {teams.length ? "Regenerate teams" : "Generate teams"}
+                  </InlineAction>
                   <InlineAction action={setMatchStatusAction} hidden={{ matchId: match.id, status: "open" }}
                     className="btn-ghost w-full">
                     Reopen RSVP
@@ -245,9 +244,11 @@ export default async function MatchPage({
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold">{p.name}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {p.proposal.count > 0
-                          ? `${p.proposal.count} vote(s) · proposed ★${p.proposal.rounded} (avg ${p.proposal.mean})`
-                          : "No votes yet"}
+                        {p.proposal.count === 0
+                          ? "No votes yet"
+                          : ctx.isAdmin
+                            ? `${p.proposal.count} vote(s) · proposed ★${p.proposal.rounded} (avg ${p.proposal.mean})`
+                            : `${p.proposal.count} vote(s) so far`}
                       </p>
                     </div>
                     {p.myVote && <Badge tone="brand">You: ★{p.myVote}</Badge>}
@@ -306,7 +307,7 @@ export default async function MatchPage({
                   <Card key={t.id} className={`border-2 ${TEAM_STYLES[t.colorIndex % TEAM_STYLES.length]}`}>
                     <div className="mb-2 flex items-center justify-between">
                       <p className="font-bold">{t.name}</p>
-                      <Badge tone="slate">Σ {t.totalStrength}</Badge>
+                      {ctx.isAdmin && <Badge tone="slate">Σ {t.totalStrength}</Badge>}
                     </div>
                     <div className="space-y-1.5">
                       {teamPlayers.map((p) => (
@@ -322,7 +323,7 @@ export default async function MatchPage({
                               options={[...teams.map((tt) => ({ value: tt.id, label: tt.name })), { value: "", label: "Reserve" }]}
                             />
                           ) : (
-                            <RatingDot rating={p.rating} />
+                            <RatingDot rating={p.rating} reveal={ctx.isAdmin} showUnrated={ctx.isAdmin} />
                           )}
                         </div>
                       ))}
@@ -525,7 +526,7 @@ function ParticipantList({
             <div key={p.userId} className="flex items-center gap-3 px-4 py-2.5">
               <Avatar name={p.name} url={p.avatarUrl} size={32} />
               <span className="flex-1 truncate text-sm font-medium">{p.name}</span>
-              {showRating && <RatingDot rating={p.rating} />}
+              {showRating && <RatingDot rating={p.rating} reveal={isAdmin} showUnrated={isAdmin} />}
               {promote && isAdmin && match.status !== "finished" && (
                 <InlineAction action={promoteWaitlistAction} hidden={{ matchId: match.id, participantId: p.participantId }} className="btn-accent btn-sm">
                   Promote

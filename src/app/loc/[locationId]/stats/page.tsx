@@ -24,11 +24,11 @@ export default async function StatsPage({ params }: { params: { locationId: stri
         <section>
           <SectionTitle>My stats</SectionTitle>
           <Card>
-            <div className="grid grid-cols-4 gap-2">
+            <div className={`grid gap-2 ${ctx.isAdmin ? "grid-cols-4" : "grid-cols-3"}`}>
               {stat("Played", stats.played)}
               {stat("Wins", stats.wins)}
               {stat("Win %", `${stats.winRate}`)}
-              {stat("Rating", ctx.rating ?? "—")}
+              {ctx.isAdmin && stat("Rating", ctx.rating ?? "—")}
             </div>
           </Card>
         </section>
@@ -46,7 +46,7 @@ export default async function StatsPage({ params }: { params: { locationId: stri
                   </p>
                   <p className="truncate text-xs capitalize text-slate-500 dark:text-slate-400">{m.role}</p>
                 </div>
-                <RatingDot rating={m.rating} />
+                <RatingDot rating={m.rating} reveal={ctx.isAdmin} showUnrated={ctx.isAdmin} />
               </div>
             ))}
           </Card>

@@ -57,7 +57,8 @@ export default async function MyLocationsPage() {
                   right={
                     <div className="flex items-center gap-1.5">
                       {l.role === "admin" && <Badge tone="brand">Admin</Badge>}
-                      {l.rating == null ? <Badge tone="amber">Unrated</Badge> : <Badge tone="slate">★ {l.rating}</Badge>}
+                      {(l.role === "admin" || user.isSuperAdmin) &&
+                        (l.rating == null ? <Badge tone="amber">Unrated</Badge> : <Badge tone="slate">★ {l.rating}</Badge>)}
                     </div>
                   }
                 />
