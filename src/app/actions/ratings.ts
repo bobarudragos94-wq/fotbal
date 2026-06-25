@@ -51,8 +51,8 @@ export async function castRatingVoteAction(_p: ActionResult | null, form: FormDa
         rating,
       });
     }
-    revalidatePath(`/app/l/${locationId}/rate`);
-    revalidatePath(`/app/l/${locationId}/admin/ratings`);
+    revalidatePath(`/loc/${locationId}/rate`);
+    revalidatePath(`/loc/${locationId}/admin/ratings`);
     return ok("Vote recorded.");
   });
 }
@@ -77,8 +77,8 @@ export async function setPlayerRatingAction(_p: ActionResult | null, form: FormD
       .delete(ratingVotes)
       .where(and(eq(ratingVotes.locationId, locationId), eq(ratingVotes.targetUserId, targetUserId)));
 
-    revalidatePath(`/app/l/${locationId}/admin/ratings`);
-    revalidatePath(`/app/l/${locationId}/admin/players`);
+    revalidatePath(`/loc/${locationId}/admin/ratings`);
+    revalidatePath(`/loc/${locationId}/admin/players`);
     return ok("Rating saved.");
   });
 }

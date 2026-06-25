@@ -58,7 +58,7 @@ export async function createMatchAction(_p: ActionResult | null, form: FormData)
       notes: s(form.get("notes")) || null,
       createdBy: user.id,
     });
-    revalidatePath(`/app/l/${locationId}/matches`);
+    revalidatePath(`/loc/${locationId}`);
     return ok("Match created.");
   });
 }
@@ -89,7 +89,7 @@ export async function updateMatchSetupAction(_p: ActionResult | null, form: Form
         notes: s(form.get("notes")) || null,
       })
       .where(eq(matches.id, matchId));
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok("Match updated.");
   });
 }
@@ -103,7 +103,7 @@ export async function setMatchStatusAction(_p: ActionResult | null, form: FormDa
     if (!m) return fail("Match not found.");
     await assertLocationAdmin(user, m.locationId);
     await db.update(matches).set({ status }).where(eq(matches.id, matchId));
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok(`Match marked ${status}.`);
   });
 }
@@ -161,7 +161,7 @@ export async function rsvpAction(_p: ActionResult | null, form: FormData): Promi
       await promoteFirstWaitlist(matchId, m.maxPlayers);
     }
 
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     if (finalStatus === "waitlist") return ok("Match is full — you're on the waitlist.");
     return ok("RSVP saved.");
   });
@@ -198,7 +198,7 @@ export async function promoteWaitlistAction(_p: ActionResult | null, form: FormD
     if (!m) return fail("Match not found.");
     await assertLocationAdmin(user, m.locationId);
     await db.update(matchParticipants).set({ status: "going" }).where(eq(matchParticipants.id, participantId));
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok("Player promoted from waitlist.");
   });
 }
@@ -231,7 +231,7 @@ export async function confirmRulesAction(_p: ActionResult | null, form: FormData
         rulesConfirmed: true,
       });
     }
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok("Thanks — rules confirmed.");
   });
 }
@@ -266,7 +266,7 @@ export async function lockMatchAction(_p: ActionResult | null, form: FormData): 
       await db.update(matchParticipants).set({ ratingSnapshot: p.rating ?? null }).where(eq(matchParticipants.id, p.id));
     }
     await db.update(matches).set({ status: "locked" }).where(eq(matches.id, matchId));
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok("Participants locked.");
   });
 }
@@ -324,7 +324,7 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
       }
     }
     await db.update(matches).set({ teamsGeneratedAt: Math.floor(Date.now() / 1000) }).where(eq(matches.id, matchId));
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     const leftover = result.leftoverIds.length;
     const teamSummary = `${m.numTeams} teams of ${teamSize}`;
     return ok(
@@ -352,7 +352,7 @@ export async function movePlayerToTeamAction(_p: ActionResult | null, form: Form
       .set({ teamId })
       .where(and(eq(matchParticipants.matchId, matchId), eq(matchParticipants.userId, userId)));
     await recomputeTeamStrengths(matchId, m.locationId);
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok(teamId ? "Player moved." : "Player benched to reserves.");
   });
 }
@@ -400,7 +400,7 @@ export async function saveGameAction(_p: ActionResult | null, form: FormData): P
       homeScore,
       awayScore,
     });
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok("Score saved.");
   });
 }
@@ -414,7 +414,7 @@ export async function deleteGameAction(_p: ActionResult | null, form: FormData):
     if (!m) return fail("Match not found.");
     await assertLocationAdmin(user, m.locationId);
     await db.delete(matchGames).where(eq(matchGames.id, gameId));
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok("Score removed.");
   });
 }
@@ -431,7 +431,7 @@ export async function togglePaidAction(_p: ActionResult | null, form: FormData):
     if (!m) return fail("Match not found.");
     await assertLocationAdmin(user, m.locationId);
     await db.update(matchParticipants).set({ paid }).where(eq(matchParticipants.id, participantId));
-    revalidatePath(`/app/l/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok(paid ? "Marked paid." : "Marked unpaid.");
   });
 }

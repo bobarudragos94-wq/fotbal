@@ -1,8 +1,9 @@
 "use client";
 
 import { useFormState, useFormStatus } from "react-dom";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import type { ActionResult } from "@/lib/actionResult";
+import { emitToast } from "./Toast";
 
 type Action = (prev: ActionResult | null, form: FormData) => Promise<ActionResult>;
 
@@ -73,7 +74,8 @@ export function InlineAction({
   className?: string;
   confirm?: string;
 }) {
-  const [, formAction] = useFormState(action, null);
+  const [state, formAction] = useFormState(action, null);
+  useToastFromState(state);
   return (
     <form
       action={formAction}
@@ -87,4 +89,15 @@ export function InlineAction({
       <SubmitButton className={className}>{children}</SubmitButton>
     </form>
   );
+}
+
+/** Show a toast whenever a server action result changes (used by single-tap actions). */
+function useToastFromState(state: ActionResult | null) {
+  const seen = useRef(0);
+  useEffect(() => {
+    if (!state) return;
+    seen.current += 1;
+    if (!state.ok) emitToast(state.error, "error");
+    else if (state.message) emitToast(state.message, "success");
+  }, [state]);
 }

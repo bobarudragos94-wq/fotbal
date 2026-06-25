@@ -72,7 +72,7 @@ export async function updateLocationAction(_p: ActionResult | null, form: FormDa
       .where(eq(locations.id, id));
     await log(id, user.id, "location.update", name);
     revalidatePath(`/super/locations`);
-    revalidatePath(`/app/l/${id}`);
+    revalidatePath(`/loc/${id}`);
     return ok("Location updated.");
   });
 }
@@ -105,7 +105,7 @@ export async function setLocationAdminAction(_p: ActionResult | null, form: Form
       .where(and(eq(locationMembers.userId, targetUserId), eq(locationMembers.locationId, locationId)));
     await log(locationId, user.id, makeAdmin ? "admin.grant" : "admin.revoke", targetUserId);
     revalidatePath("/super/admins");
-    revalidatePath(`/app/l/${locationId}/admin/players`);
+    revalidatePath(`/loc/${locationId}/admin/players`);
     return ok(makeAdmin ? "Promoted to location admin." : "Admin rights revoked.");
   });
 }
@@ -204,7 +204,7 @@ export async function decideJoinAction(_p: ActionResult | null, form: FormData):
       }
     }
     await log(req.locationId, user.id, approve ? "join.approve" : "join.reject", req.userId);
-    revalidatePath(`/app/l/${req.locationId}/admin/pending`);
+    revalidatePath(`/loc/${req.locationId}/admin/pending`);
     revalidatePath("/super/pending");
     return ok(approve ? "Player approved." : "Request rejected.");
   });
@@ -229,7 +229,7 @@ export async function updateRulesAction(_p: ActionResult | null, form: FormData)
       await db.insert(locationRules).values({ locationId, content, updatedBy: user.id });
     }
     await log(locationId, user.id, "rules.update");
-    revalidatePath(`/app/l/${locationId}/rules`);
+    revalidatePath(`/loc/${locationId}/rules`);
     return ok("Rules updated.");
   });
 }

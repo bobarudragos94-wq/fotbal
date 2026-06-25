@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import { useFormState } from "react-dom";
 import type { ActionResult } from "@/lib/actionResult";
+import { emitToast } from "./Toast";
 
 type Action = (prev: ActionResult | null, form: FormData) => Promise<ActionResult>;
 
@@ -21,7 +23,12 @@ export function SelectSubmit({
   options: { value: string; label: string }[];
   className?: string;
 }) {
-  const [, formAction] = useFormState(action, null);
+  const [state, formAction] = useFormState(action, null);
+  useEffect(() => {
+    if (!state) return;
+    if (!state.ok) emitToast(state.error, "error");
+    else if (state.message) emitToast(state.message, "success");
+  }, [state]);
   return (
     <form action={formAction}>
       {Object.entries(hidden).map(([k, v]) => (
