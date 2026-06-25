@@ -34,6 +34,9 @@ export default async function JoinPage() {
 
         <Card>
           <SectionTitle>Have an invite code?</SectionTitle>
+          <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+            With a code you join instantly — no approval needed.
+          </p>
           <ActionForm action={requestJoinAction} className="space-y-3">
             <input
               name="inviteCode"
@@ -42,12 +45,15 @@ export default async function JoinPage() {
               maxLength={8}
               autoCapitalize="characters"
             />
-            <SubmitButton pendingText="Sending…">Request to join</SubmitButton>
+            <SubmitButton pendingText="Joining…">Join with code</SubmitButton>
           </ActionForm>
         </Card>
 
         <section>
           <SectionTitle>Browse locations</SectionTitle>
+          <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+            Without a code, your request needs admin approval.
+          </p>
           {available.length === 0 ? (
             <EmptyState title="Nothing to join right now" hint="You're a member of (or awaiting) all locations." icon={<Icon.Pin className="h-8 w-8" />} />
           ) : (

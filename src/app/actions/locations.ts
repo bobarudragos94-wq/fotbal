@@ -110,16 +110,38 @@ export async function requestJoinAction(_p: ActionResult | null, form: FormData)
     const code = s(form.get("inviteCode")).toUpperCase();
     const byId = s(form.get("locationId"));
 
+    // Joining via a valid invite code auto-approves; browsing without a code
+    // still creates a request the admin must approve.
     let loc;
-    if (byId) {
-      loc = (await db.select().from(locations).where(eq(locations.id, byId)).limit(1))[0];
-    } else if (code) {
+    let viaCode = false;
+    if (code) {
       loc = (await db.select().from(locations).where(eq(locations.inviteCode, code)).limit(1))[0];
+      viaCode = !!loc;
+    } else if (byId) {
+      loc = (await db.select().from(locations).where(eq(locations.id, byId)).limit(1))[0];
     }
     if (!loc) return fail("Location not found. Check the invite code.");
 
     const existingMember = await getMembership(user.id, loc.id);
     if (existingMember) return fail("You are already a member of this location.");
+
+    if (viaCode) {
+      // Auto-join: become an active player immediately, no approval needed.
+      await db.insert(locationMembers).values({
+        id: newId(),
+        locationId: loc.id,
+        userId: user.id,
+        role: "player",
+      });
+      // Clear any earlier pending request for this location.
+      await db
+        .update(joinRequests)
+        .set({ status: "approved", decidedBy: user.id, decidedAt: Math.floor(Date.now() / 1000) })
+        .where(and(eq(joinRequests.locationId, loc.id), eq(joinRequests.userId, user.id), eq(joinRequests.status, "pending")));
+      await log(loc.id, user.id, "join.auto");
+      revalidatePath("/app");
+      return ok(`You've joined ${loc.name}!`);
+    }
 
     const pending = await db
       .select({ id: joinRequests.id })

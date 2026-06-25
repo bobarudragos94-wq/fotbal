@@ -46,6 +46,16 @@ export default async function AdminDashboard({ params }: { params: { locationId:
           </div>
         </Card>
 
+        <Card className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">Invite code</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Share it — players with the code join instantly.</p>
+          </div>
+          <span className="rounded-xl bg-brand-50 px-3 py-2 text-lg font-bold tracking-widest text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+            {ctx.location.inviteCode}
+          </span>
+        </Card>
+
         <div className="grid gap-3">
           <Link href={`${base}/admin/new-match`} className="flex items-center gap-3 rounded-2xl bg-brand-600 p-4 text-white hover:bg-brand-700">
             <Icon.Plus className="h-6 w-6" />
