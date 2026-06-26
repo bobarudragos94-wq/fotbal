@@ -5,6 +5,8 @@ import { joinRequests, locationMembers, matches } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { AppBar } from "@/components/AppBar";
 import { PageHeader, Card, LinkCard, Badge } from "@/components/ui";
+import { InlineAction } from "@/components/Form";
+import { deleteLocationAction } from "@/app/actions/locations";
 import { Icon } from "@/components/icons";
 
 async function count(where: any) {
@@ -69,6 +71,23 @@ export default async function AdminDashboard({ params }: { params: { locationId:
             right={unrated > 0 ? <Badge tone="amber">{unrated}</Badge> : undefined} />
           <LinkCard href={`${base}/admin/rules`} title="Rules editor" subtitle="Edit the house rules" />
         </div>
+
+        {ctx.user.isSuperAdmin && (
+          <Card className="border-red-200 dark:border-red-900/60">
+            <p className="text-sm font-semibold">Danger zone</p>
+            <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+              Permanently delete this location with all its players, matches, scores and history.
+            </p>
+            <InlineAction
+              action={deleteLocationAction}
+              hidden={{ locationId: params.locationId }}
+              className="btn-danger w-full"
+              confirm="Delete this location and ALL its data? This cannot be undone."
+            >
+              Delete location
+            </InlineAction>
+          </Card>
+        )}
       </div>
     </>
   );

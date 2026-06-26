@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   locations,
@@ -9,6 +10,11 @@ import {
   locationRules,
   joinRequests,
   auditLogs,
+  matches,
+  matchParticipants,
+  teams,
+  matchGames,
+  ratingVotes,
 } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { assertSuperAdmin, assertLocationAdmin, getMembership } from "@/lib/permissions";
@@ -78,15 +84,33 @@ export async function updateLocationAction(_p: ActionResult | null, form: FormDa
 }
 
 export async function deleteLocationAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
-  return guard(async () => {
-    const user = await requireUser();
-    assertSuperAdmin(user);
-    const id = s(form.get("locationId"));
+  const user = await requireUser();
+  if (!user.isSuperAdmin) return fail("Super admin only.");
+  const id = s(form.get("locationId"));
+
+  try {
+    // Delete children explicitly (works even if FK cascade isn't enabled on Turso).
+    const ms = await db.select({ id: matches.id }).from(matches).where(eq(matches.locationId, id));
+    const matchIds = ms.map((m) => m.id);
+    if (matchIds.length) {
+      await db.delete(matchGames).where(inArray(matchGames.matchId, matchIds));
+      await db.delete(teams).where(inArray(teams.matchId, matchIds));
+      await db.delete(matchParticipants).where(inArray(matchParticipants.matchId, matchIds));
+    }
+    await db.delete(matches).where(eq(matches.locationId, id));
+    await db.delete(ratingVotes).where(eq(ratingVotes.locationId, id));
+    await db.delete(joinRequests).where(eq(joinRequests.locationId, id));
+    await db.delete(locationRules).where(eq(locationRules.locationId, id));
+    await db.delete(locationMembers).where(eq(locationMembers.locationId, id));
     await db.delete(locations).where(eq(locations.id, id));
     await log(null, user.id, "location.delete", id);
-    revalidatePath("/super/locations");
-    return ok("Location deleted.");
-  });
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Could not delete location.");
+  }
+
+  revalidatePath("/super/locations");
+  revalidatePath("/app");
+  redirect("/super/locations");
 }
 
 export async function setLocationAdminAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
