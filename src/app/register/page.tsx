@@ -3,9 +3,10 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { registerAction } from "@/app/actions/auth";
 import { ActionForm, SubmitButton } from "@/components/Form";
+import { OAuthButtons, OAuthError } from "@/components/OAuthButtons";
 import { Icon } from "@/components/icons";
 
-export default async function RegisterPage() {
+export default async function RegisterPage({ searchParams }: { searchParams: { error?: string } }) {
   if (await getCurrentUser()) redirect("/app");
   return (
     <main className="mx-auto flex min-h-screen max-w-app flex-col justify-center px-5 py-10">
@@ -16,11 +17,14 @@ export default async function RegisterPage() {
         <span className="text-lg font-bold">Football Group Manager</span>
       </div>
       <h1 className="text-2xl font-bold">Creează-ți contul</h1>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mt-1 mb-6 text-sm text-slate-500 dark:text-slate-400">
         După înregistrare, intri într-o locație cu un cod de invitație.
       </p>
 
-      <ActionForm action={registerAction} className="mt-6 space-y-4">
+      <OAuthError error={searchParams.error} />
+      <OAuthButtons />
+
+      <ActionForm action={registerAction} className="space-y-4">
         <div>
           <label className="label" htmlFor="name">Nume complet <span className="text-slate-400">(privat)</span></label>
           <input id="name" name="name" required className="input" placeholder="Andrei Popescu" autoComplete="name" />
