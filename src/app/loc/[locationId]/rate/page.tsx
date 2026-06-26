@@ -13,14 +13,14 @@ export default async function RatePage({ params }: { params: { locationId: strin
 
   return (
     <>
-      <AppBar title="Rate Players" />
+      <AppBar title="Votează jucători" />
       <div className="space-y-4 px-4 py-4">
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Help the admin rate new players. 1 = top player, 4 = beginner. The admin confirms the final rating.
+          Ajută adminul să evalueze jucătorii noi. 1 = top, 4 = începător. Adminul confirmă ratingul final.
         </p>
 
         {unrated.length === 0 ? (
-          <EmptyState title="Everyone's rated" hint="No players need a rating right now." icon={<Icon.Users className="h-8 w-8" />} />
+          <EmptyState title="Toți au rating" hint="Niciun jucător nu are nevoie de rating acum." icon={<Icon.Users className="h-8 w-8" />} />
         ) : (
           unrated.map((p) => (
             <Card key={p.userId}>
@@ -30,16 +30,16 @@ export default async function RatePage({ params }: { params: { locationId: strin
                   <p className="font-semibold">{p.name}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {p.proposal.count === 0
-                      ? "No votes yet"
+                      ? "Niciun vot încă"
                       : ctx.isAdmin
-                        ? `${p.proposal.count} vote(s) · proposed ★${p.proposal.rounded} (avg ${p.proposal.mean})`
-                        : `${p.proposal.count} vote(s) so far`}
+                        ? `${p.proposal.count} voturi · propus ★${p.proposal.rounded} (medie ${p.proposal.mean})`
+                        : `${p.proposal.count} voturi până acum`}
                   </p>
                 </div>
-                {p.myVote && <Badge tone="brand">You: ★{p.myVote}</Badge>}
+                {p.myVote && <Badge tone="brand">Tu: ★{p.myVote}</Badge>}
               </div>
               {p.userId === ctx.user.id ? (
-                <p className="text-sm text-slate-400">You can't rate yourself.</p>
+                <p className="text-sm text-slate-400">Nu te poți evalua pe tine.</p>
               ) : (
                 <div className="grid grid-cols-4 gap-2">
                   {[1, 2, 3, 4].map((r) => (

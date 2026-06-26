@@ -15,38 +15,38 @@ export default async function RegisterPage() {
         </span>
         <span className="text-lg font-bold">Football Group Manager</span>
       </div>
-      <h1 className="text-2xl font-bold">Create your account</h1>
+      <h1 className="text-2xl font-bold">Creează-ți contul</h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        After signing up, join a location with an invite code.
+        După înregistrare, intri într-o locație cu un cod de invitație.
       </p>
 
       <ActionForm action={registerAction} className="mt-6 space-y-4">
         <div>
-          <label className="label" htmlFor="name">Full name <span className="text-slate-400">(private)</span></label>
+          <label className="label" htmlFor="name">Nume complet <span className="text-slate-400">(privat)</span></label>
           <input id="name" name="name" required className="input" placeholder="Andrei Popescu" autoComplete="name" />
         </div>
         <div>
-          <label className="label" htmlFor="nickname">Nickname <span className="text-slate-400">(shown to everyone)</span></label>
-          <input id="nickname" name="nickname" required minLength={2} maxLength={24} className="input" placeholder="e.g. Speedy" />
+          <label className="label" htmlFor="nickname">Nickname <span className="text-slate-400">(vizibil pentru toți)</span></label>
+          <input id="nickname" name="nickname" required minLength={2} maxLength={24} className="input" placeholder="ex. Fulger" />
         </div>
         <div>
           <label className="label" htmlFor="email">Email</label>
           <input id="email" name="email" type="email" required className="input" placeholder="you@example.com" autoComplete="email" />
         </div>
         <div>
-          <label className="label" htmlFor="phone">Phone <span className="text-slate-400">(optional)</span></label>
+          <label className="label" htmlFor="phone">Telefon <span className="text-slate-400">(opțional)</span></label>
           <input id="phone" name="phone" className="input" placeholder="07xx xxx xxx" autoComplete="tel" />
         </div>
         <div>
-          <label className="label" htmlFor="password">Password</label>
-          <input id="password" name="password" type="password" required minLength={6} className="input" placeholder="At least 6 characters" autoComplete="new-password" />
+          <label className="label" htmlFor="password">Parolă</label>
+          <input id="password" name="password" type="password" required minLength={6} className="input" placeholder="Minim 6 caractere" autoComplete="new-password" />
         </div>
-        <SubmitButton pendingText="Creating…">Create account</SubmitButton>
+        <SubmitButton pendingText="Se creează…">Creează cont</SubmitButton>
       </ActionForm>
 
       <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
-        Already have an account?{" "}
-        <Link href="/login" className="font-semibold text-brand-600 dark:text-brand-400">Log in</Link>
+        Ai deja cont?{" "}
+        <Link href="/login" className="font-semibold text-brand-600 dark:text-brand-400">Conectează-te</Link>
       </p>
     </main>
   );

@@ -19,12 +19,12 @@ export default async function RulesEditorPage({ params }: { params: { locationId
 
   return (
     <>
-      <AppBar title="Rules Editor" back={`/loc/${params.locationId}/admin`} />
+      <AppBar title="Editor reguli" back={`/loc/${params.locationId}/admin`} />
       <div className="px-4 py-4">
         <Card>
           <ActionForm action={updateRulesAction} className="space-y-3">
             <input type="hidden" name="locationId" value={params.locationId} />
-            <label className="label" htmlFor="content">House rules</label>
+            <label className="label" htmlFor="content">Regulile casei</label>
             <textarea
               id="content"
               name="content"
@@ -32,11 +32,11 @@ export default async function RulesEditorPage({ params }: { params: { locationId
               className="input py-2 font-mono text-sm leading-relaxed"
               defaultValue={rules?.content || TEMPLATE}
             />
-            <SubmitButton pendingText="Saving…">Save rules</SubmitButton>
+            <SubmitButton pendingText="Se salvează…">Salvează regulile</SubmitButton>
           </ActionForm>
         </Card>
         <p className="mt-3 text-center text-xs text-slate-400">
-          Players confirm they've read these on each match page.
+          Jucătorii confirmă că le-au citit pe pagina fiecărui meci.
         </p>
       </div>
     </>

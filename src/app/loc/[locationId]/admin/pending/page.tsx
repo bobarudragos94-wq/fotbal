@@ -13,10 +13,10 @@ export default async function PendingPage({ params }: { params: { locationId: st
 
   return (
     <>
-      <AppBar title="Pending Players" back={`${base}/admin`} />
+      <AppBar title="Cereri jucători" back={`${base}/admin`} />
       <div className="space-y-3 px-4 py-4">
         {requests.length === 0 ? (
-          <EmptyState title="No pending requests" hint="New join requests will show up here." icon={<Icon.Users className="h-8 w-8" />} />
+          <EmptyState title="Nicio cerere în așteptare" hint="Cererile noi vor apărea aici." icon={<Icon.Users className="h-8 w-8" />} />
         ) : (
           requests.map((r) => (
             <Card key={r.id}>
@@ -30,10 +30,10 @@ export default async function PendingPage({ params }: { params: { locationId: st
               {r.message && <p className="mb-3 rounded-lg bg-slate-50 p-2 text-sm dark:bg-slate-800/60">{r.message}</p>}
               <div className="grid grid-cols-2 gap-2">
                 <InlineAction action={decideJoinAction} hidden={{ requestId: r.id, decision: "approve" }} className="btn-primary w-full">
-                  Approve
+                  Aprobă
                 </InlineAction>
-                <InlineAction action={decideJoinAction} hidden={{ requestId: r.id, decision: "reject" }} className="btn-ghost w-full" confirm="Reject this request?">
-                  Reject
+                <InlineAction action={decideJoinAction} hidden={{ requestId: r.id, decision: "reject" }} className="btn-ghost w-full" confirm="Respingi cererea?">
+                  Respinge
                 </InlineAction>
               </div>
             </Card>

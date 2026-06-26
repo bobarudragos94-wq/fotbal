@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "Football Group Manager",
-  description: "Organize football matches: locations, RSVP, balanced teams, scores and history.",
+  description: "Organizează meciuri de fotbal: locații, înscrieri, echipe echilibrate, scoruri și istoric.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "FGM" },
 };

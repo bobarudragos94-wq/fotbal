@@ -34,30 +34,30 @@ export default async function SuperOverview() {
     <>
       <AppBar title="Super Admin" />
       <div className="space-y-5 px-4 py-4">
-        <PageHeader title="Overview" subtitle="Everything across all locations" />
+        <PageHeader title="Sumar" subtitle="Totul, în toate locațiile" />
         <Card>
           <div className="grid grid-cols-3 gap-2">
-            {stat("Locations", Number(locs.length))}
-            {stat("Users", Number(userCount[0].c))}
-            {stat("Pending", Number(pendingCount[0].c))}
+            {stat("Locații", Number(locs.length))}
+            {stat("Utilizatori", Number(userCount[0].c))}
+            {stat("Cereri", Number(pendingCount[0].c))}
           </div>
         </Card>
 
         <Link href="/super/locations" className="flex items-center gap-3 rounded-2xl bg-brand-600 p-4 text-white hover:bg-brand-700">
           <Icon.Plus className="h-6 w-6" />
-          <div className="flex-1"><p className="font-semibold">New location</p><p className="text-xs text-white/80">Create a fresh, isolated pitch</p></div>
+          <div className="flex-1"><p className="font-semibold">Locație nouă</p><p className="text-xs text-white/80">Creează un teren nou, izolat</p></div>
         </Link>
 
         <section>
-          <SectionTitle>Activity per location</SectionTitle>
+          <SectionTitle>Activitate per locație</SectionTitle>
           <div className="space-y-3">
             {locs.map((l) => (
               <LinkCard
                 key={l.id}
                 href={`/super/locations/${l.id}`}
                 title={l.name}
-                subtitle={`${Number(l.members)} players · ${Number(l.admins)} admin(s)`}
-                right={Number(l.openMatches) > 0 ? <Badge tone="green">{Number(l.openMatches)} open</Badge> : undefined}
+                subtitle={`${Number(l.members)} jucători · ${Number(l.admins)} admin(i)`}
+                right={Number(l.openMatches) > 0 ? <Badge tone="green">{Number(l.openMatches)} deschise</Badge> : undefined}
               />
             ))}
           </div>

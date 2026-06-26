@@ -7,11 +7,11 @@ export default async function SuperLayout({ children }: { children: React.ReactN
   if (!user.isSuperAdmin) redirect("/app");
 
   const items: NavItem[] = [
-    { href: "/super", label: "Overview", icon: "Home", exact: true },
-    { href: "/super/locations", label: "Locations", icon: "Pin" },
-    { href: "/super/users", label: "Users", icon: "Users" },
-    { href: "/super/pending", label: "Pending", icon: "Clock" },
-    { href: "/app", label: "Exit", icon: "Logout", exact: true },
+    { href: "/super", label: "Sumar", icon: "Home", exact: true },
+    { href: "/super/locations", label: "Locații", icon: "Pin" },
+    { href: "/super/users", label: "Utilizatori", icon: "Users" },
+    { href: "/super/pending", label: "Cereri", icon: "Clock" },
+    { href: "/app", label: "Ieșire", icon: "Logout", exact: true },
   ];
 
   return (

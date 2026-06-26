@@ -56,7 +56,20 @@ export function StatusBadge({ status }: { status: string }) {
     approved: "green",
     rejected: "red",
   };
-  return <Badge tone={map[status] ?? "slate"}>{status}</Badge>;
+  const ro: Record<string, string> = {
+    draft: "ciornă",
+    open: "deschis",
+    locked: "blocat",
+    finished: "încheiat",
+    going: "vin",
+    maybe: "poate",
+    declined: "nu vin",
+    waitlist: "rezervă",
+    pending: "în așteptare",
+    approved: "aprobat",
+    rejected: "respins",
+  };
+  return <Badge tone={map[status] ?? "slate"}>{ro[status] ?? status}</Badge>;
 }
 
 export function EmptyState({ title, hint, icon }: { title: string; hint?: string; icon?: ReactNode }) {
@@ -125,7 +138,7 @@ export function RatingDot({
   reveal?: boolean;
   showUnrated?: boolean;
 }) {
-  if (rating == null) return showUnrated ? <Badge tone="amber">Unrated</Badge> : null;
+  if (rating == null) return showUnrated ? <Badge tone="amber">Fără rating</Badge> : null;
   if (!reveal) return null;
   const tone: BadgeTone = rating === 1 ? "green" : rating === 2 ? "brand" : rating === 3 ? "slate" : "red";
   return <Badge tone={tone}>★ {rating}</Badge>;

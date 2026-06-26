@@ -15,21 +15,21 @@ export default async function AdminPlayersPage({ params }: { params: { locationI
 
   return (
     <>
-      <AppBar title={`Players (${members.length})`} back={`${base}/admin`} />
+      <AppBar title={`Jucători (${members.length})`} back={`${base}/admin`} />
       <div className="space-y-3 px-4 py-4">
         <Card className="border-dashed">
-          <p className="text-sm font-semibold">Testing tools</p>
+          <p className="text-sm font-semibold">Unelte de test</p>
           <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
-            Add 18 demo players to try the full flow (RSVP fill, voting, teams). Remove them when done.
-            {demoCount > 0 ? ` Currently ${demoCount} demo player(s).` : ""}
+            Adaugă 18 jucători demo ca să testezi tot fluxul (înscriere, vot, echipe). Șterge-i când termini.
+            {demoCount > 0 ? ` Momentan ${demoCount} jucători demo.` : ""}
           </p>
           <div className="grid grid-cols-2 gap-2">
             <InlineAction action={addDemoPlayersAction} hidden={{ locationId: params.locationId }} className="btn-primary w-full">
-              Add 18 demo players
+              Adaugă 18 jucători demo
             </InlineAction>
             <InlineAction action={removeDemoPlayersAction} hidden={{ locationId: params.locationId }} className="btn-danger w-full"
-              confirm="Remove ALL demo players and their data from this location?">
-              Remove demo players
+              confirm="Ștergi TOȚI jucătorii demo și datele lor din această locație?">
+              Șterge jucătorii demo
             </InlineAction>
           </div>
         </Card>
@@ -40,7 +40,7 @@ export default async function AdminPlayersPage({ params }: { params: { locationI
             <div className="min-w-0 flex-1">
               <p className="truncate font-semibold">
                 {m.name}
-                {m.userId === ctx.user.id && <span className="ml-1 text-xs text-slate-400">(you)</span>}
+                {m.userId === ctx.user.id && <span className="ml-1 text-xs text-slate-400">(tu)</span>}
               </p>
               <div className="mt-0.5 flex items-center gap-1.5">
                 {m.role === "admin" && <Badge tone="brand">Admin</Badge>}
@@ -48,7 +48,7 @@ export default async function AdminPlayersPage({ params }: { params: { locationI
               </div>
             </div>
             <div className="flex flex-col items-end gap-1">
-              <span className="text-[10px] uppercase text-slate-400">Set rating</span>
+              <span className="text-[10px] uppercase text-slate-400">Setează rating</span>
               <SelectSubmit
                 action={setPlayerRatingAction}
                 name="rating"
@@ -57,9 +57,9 @@ export default async function AdminPlayersPage({ params }: { params: { locationI
                 options={[
                   { value: "", label: "—" },
                   { value: "1", label: "1 · Top" },
-                  { value: "2", label: "2 · Good" },
-                  { value: "3", label: "3 · Avg" },
-                  { value: "4", label: "4 · Beginner" },
+                  { value: "2", label: "2 · Bun" },
+                  { value: "3", label: "3 · Mediu" },
+                  { value: "4", label: "4 · Începător" },
                 ]}
               />
             </div>

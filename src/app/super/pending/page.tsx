@@ -26,10 +26,10 @@ export default async function SuperPending() {
 
   return (
     <>
-      <AppBar title="Global Pending" />
+      <AppBar title="Cereri globale" />
       <div className="space-y-3 px-4 py-4">
         {requests.length === 0 ? (
-          <EmptyState title="No pending requests" hint="Join requests across all locations show here." icon={<Icon.Clock className="h-8 w-8" />} />
+          <EmptyState title="Nicio cerere în așteptare" hint="Cererile din toate locațiile apar aici." icon={<Icon.Clock className="h-8 w-8" />} />
         ) : (
           requests.map((r) => (
             <Card key={r.id}>
@@ -42,8 +42,8 @@ export default async function SuperPending() {
                 <Badge tone="amber">{r.locationName}</Badge>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <InlineAction action={decideJoinAction} hidden={{ requestId: r.id, decision: "approve" }} className="btn-primary w-full">Approve</InlineAction>
-                <InlineAction action={decideJoinAction} hidden={{ requestId: r.id, decision: "reject" }} className="btn-ghost w-full" confirm="Reject this request?">Reject</InlineAction>
+                <InlineAction action={decideJoinAction} hidden={{ requestId: r.id, decision: "approve" }} className="btn-primary w-full">Aprobă</InlineAction>
+                <InlineAction action={decideJoinAction} hidden={{ requestId: r.id, decision: "reject" }} className="btn-ghost w-full" confirm="Respingi cererea?">Respinge</InlineAction>
               </div>
             </Card>
           ))

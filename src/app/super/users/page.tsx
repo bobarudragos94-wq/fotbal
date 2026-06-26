@@ -20,7 +20,7 @@ export default async function SuperUsers() {
 
   return (
     <>
-      <AppBar title={`Users (${all.length})`} />
+      <AppBar title={`Utilizatori (${all.length})`} />
       <div className="space-y-3 px-4 py-4">
         {all.map((u) => (
           <Card key={u.id} className="flex items-center gap-3">

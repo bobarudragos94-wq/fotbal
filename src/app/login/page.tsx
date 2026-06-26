@@ -15,8 +15,8 @@ export default async function LoginPage() {
         </span>
         <span className="text-lg font-bold">Football Group Manager</span>
       </div>
-      <h1 className="text-2xl font-bold">Welcome back</h1>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Log in to see your matches.</p>
+      <h1 className="text-2xl font-bold">Bine ai revenit</h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Conectează-te ca să-ți vezi meciurile.</p>
 
       <ActionForm action={loginAction} className="mt-6 space-y-4">
         <div>
@@ -24,15 +24,15 @@ export default async function LoginPage() {
           <input id="email" name="email" type="email" autoComplete="email" required className="input" placeholder="you@example.com" />
         </div>
         <div>
-          <label className="label" htmlFor="password">Password</label>
+          <label className="label" htmlFor="password">Parolă</label>
           <input id="password" name="password" type="password" autoComplete="current-password" required className="input" placeholder="••••••••" />
         </div>
-        <SubmitButton pendingText="Logging in…">Log in</SubmitButton>
+        <SubmitButton pendingText="Se conectează…">Conectare</SubmitButton>
       </ActionForm>
 
       <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
-        No account?{" "}
-        <Link href="/register" className="font-semibold text-brand-600 dark:text-brand-400">Create one</Link>
+        Nu ai cont?{" "}
+        <Link href="/register" className="font-semibold text-brand-600 dark:text-brand-400">Creează unul</Link>
       </p>
     </main>
   );

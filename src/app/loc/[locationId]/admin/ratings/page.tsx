@@ -13,30 +13,30 @@ export default async function AdminRatingsPage({ params }: { params: { locationI
 
   return (
     <>
-      <AppBar title="Confirm Ratings" back={`/loc/${params.locationId}/admin`} />
+      <AppBar title="Confirmă ratingurile" back={`/loc/${params.locationId}/admin`} />
       <div className="space-y-4 px-4 py-4">
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Players are rated by community vote. Confirm the proposed rating, or override it. You can also generate
-          teams before everyone is rated — unrated players get an automatic rating.
+          Jucătorii sunt evaluați prin votul comunității. Confirmă ratingul propus sau modifică-l. Poți genera
+          echipele și înainte ca toți să fie evaluați — cei fără rating primesc unul automat.
         </p>
 
         <Card className="border-dashed">
-          <p className="text-sm font-semibold">Reset all ratings</p>
+          <p className="text-sm font-semibold">Resetează toate ratingurile</p>
           <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
-            Clears every player&apos;s rating and all votes in this location, so the whole squad is re-voted from
-            scratch. Use this before a match if there are disputes.
+            Șterge ratingul fiecărui jucător și toate voturile din locație, ca tot lotul să fie revotat de la
+            zero. Folosește înainte de meci dacă apar discuții.
           </p>
           <InlineAction
             action={resetLocationRatingsAction}
             hidden={{ locationId: params.locationId }}
             className="btn-danger w-full"
-            confirm="Reset ALL ratings and votes in this location? Everyone becomes unrated and must be voted again."
+            confirm="Resetezi TOATE ratingurile și voturile din locație? Toți rămân fără rating și trebuie revotați."
           >
-            Reset all ratings & votes
+            Resetează ratinguri și voturi
           </InlineAction>
         </Card>
         {unrated.length === 0 ? (
-          <EmptyState title="All players rated" hint="You're ready to generate balanced teams." icon={<Icon.Users className="h-8 w-8" />} />
+          <EmptyState title="Toți jucătorii au rating" hint="Ești gata să generezi echipe echilibrate." icon={<Icon.Users className="h-8 w-8" />} />
         ) : (
           unrated.map((p) => (
             <Card key={p.userId}>
@@ -46,13 +46,13 @@ export default async function AdminRatingsPage({ params }: { params: { locationI
                   <p className="truncate font-semibold">{p.name}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {p.proposal.count > 0
-                      ? `${p.proposal.count} vote(s) · avg ${p.proposal.mean} · median ${p.proposal.median}`
-                      : "No votes yet"}
+                      ? `${p.proposal.count} voturi · medie ${p.proposal.mean} · mediană ${p.proposal.median}`
+                      : "Niciun vot încă"}
                   </p>
                 </div>
-                {p.proposal.rounded && <Badge tone="amber">Proposed ★{p.proposal.rounded}</Badge>}
+                {p.proposal.rounded && <Badge tone="amber">Propus ★{p.proposal.rounded}</Badge>}
               </div>
-              <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">Confirm final rating</p>
+              <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">Confirmă ratingul final</p>
               <div className="grid grid-cols-4 gap-2">
                 {[1, 2, 3, 4].map((r) => (
                   <InlineAction

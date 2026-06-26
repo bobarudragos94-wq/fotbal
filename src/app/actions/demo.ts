@@ -44,7 +44,7 @@ export async function addDemoPlayersAction(_p: ActionResult | null, form: FormDa
 
     const existing = await demoMemberIds(locationId);
     const toAdd = DEMO_TARGET - existing.length;
-    if (toAdd <= 0) return fail(`You already have ${existing.length} demo players here. Remove them first to re-add.`);
+    if (toAdd <= 0) return fail(`Ai deja ${existing.length} jucători demo aici. Șterge-i întâi ca să-i readaugi.`);
 
     const hash = await bcrypt.hash("demo1234", 10);
     const created: string[] = [];
@@ -103,7 +103,7 @@ export async function addDemoPlayersAction(_p: ActionResult | null, form: FormDa
 
     revalidatePath(`/loc/${locationId}/admin/players`);
     revalidatePath(`/loc/${locationId}/stats`);
-    return ok(`Added ${toAdd} demo player(s). Password for all: demo1234.`);
+    return ok(`Adăugați ${toAdd} jucători demo. Parola pentru toți: demo1234.`);
   });
 }
 
@@ -115,7 +115,7 @@ export async function removeDemoPlayersAction(_p: ActionResult | null, form: For
     await assertLocationAdmin(user, locationId);
 
     const ids = await demoMemberIds(locationId);
-    if (ids.length === 0) return fail("No demo players to remove.");
+    if (ids.length === 0) return fail("Nu există jucători demo de șters.");
 
     // Delete children first (works whether or not FK cascade is enabled).
     await db.delete(matchParticipants).where(inArray(matchParticipants.userId, ids));
@@ -125,7 +125,7 @@ export async function removeDemoPlayersAction(_p: ActionResult | null, form: For
 
     revalidatePath(`/loc/${locationId}/admin/players`);
     revalidatePath(`/loc/${locationId}/stats`);
-    return ok(`Removed ${ids.length} demo player(s).`);
+    return ok(`Șterși ${ids.length} jucători demo.`);
   });
 }
 
@@ -135,12 +135,12 @@ export async function fillMatchWithDemosAction(_p: ActionResult | null, form: Fo
     const user = await requireUser();
     const matchId = (form.get("matchId") ?? "").toString();
     const m = (await db.select().from(matches).where(eq(matches.id, matchId)).limit(1))[0];
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
-    if (m.status !== "open" && m.status !== "draft") return fail("Open the match for RSVP first.");
+    if (m.status !== "open" && m.status !== "draft") return fail("Deschide întâi meciul pentru înscrieri.");
 
     const demos = await demoMemberIds(m.locationId);
-    if (demos.length === 0) return fail("No demo players in this location. Add them from the Players page first.");
+    if (demos.length === 0) return fail("Nu există jucători demo în această locație. Adaugă-i întâi din pagina Jucători.");
 
     let goingCount = (
       await db
@@ -171,6 +171,6 @@ export async function fillMatchWithDemosAction(_p: ActionResult | null, form: Fo
       }
     }
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok(`Demo players added to the match (${goingCount} confirmed).`);
+    return ok(`Jucători demo adăugați la meci (${goingCount} confirmați).`);
   });
 }

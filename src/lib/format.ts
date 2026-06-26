@@ -1,6 +1,6 @@
 export function formatDateTime(unixSeconds: number): string {
   const d = new Date(unixSeconds * 1000);
-  return d.toLocaleString("en-GB", {
+  return d.toLocaleString("ro-RO", {
     weekday: "short",
     day: "2-digit",
     month: "short",
@@ -10,7 +10,7 @@ export function formatDateTime(unixSeconds: number): string {
 }
 
 export function formatDate(unixSeconds: number): string {
-  return new Date(unixSeconds * 1000).toLocaleDateString("en-GB", {
+  return new Date(unixSeconds * 1000).toLocaleDateString("ro-RO", {
     day: "2-digit",
     month: "short",
     year: "numeric",

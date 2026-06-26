@@ -19,22 +19,22 @@ export default async function StatsPage({ params }: { params: { locationId: stri
 
   return (
     <>
-      <AppBar title="Stats" />
+      <AppBar title="Statistici" />
       <div className="space-y-5 px-4 py-4">
         <section>
-          <SectionTitle>My stats</SectionTitle>
+          <SectionTitle>Statisticile mele</SectionTitle>
           <Card>
             <div className={`grid gap-2 ${ctx.isAdmin ? "grid-cols-4" : "grid-cols-3"}`}>
-              {stat("Played", stats.played)}
-              {stat("Wins", stats.wins)}
-              {stat("Win %", `${stats.winRate}`)}
+              {stat("Jucate", stats.played)}
+              {stat("Victorii", stats.wins)}
+              {stat("% victorii", `${stats.winRate}`)}
               {ctx.isAdmin && stat("Rating", ctx.rating ?? "—")}
             </div>
           </Card>
         </section>
 
         <section>
-          <SectionTitle>Squad ({members.length})</SectionTitle>
+          <SectionTitle>Lot ({members.length})</SectionTitle>
           <Card className="divide-y divide-slate-100 p-0 dark:divide-slate-800">
             {members.map((m) => (
               <div key={m.userId} className="flex items-center gap-3 px-4 py-3">
@@ -42,9 +42,9 @@ export default async function StatsPage({ params }: { params: { locationId: stri
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">
                     {m.name}
-                    {m.userId === ctx.user.id && <span className="ml-1 text-xs text-slate-400">(you)</span>}
+                    {m.userId === ctx.user.id && <span className="ml-1 text-xs text-slate-400">(tu)</span>}
                   </p>
-                  <p className="truncate text-xs capitalize text-slate-500 dark:text-slate-400">{m.role}</p>
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">{m.role === "admin" ? "admin" : "jucător"}</p>
                 </div>
                 <RatingDot rating={m.rating} reveal={ctx.isAdmin} showUnrated={ctx.isAdmin} />
               </div>

@@ -34,7 +34,7 @@ export async function createLocationAction(_p: ActionResult | null, form: FormDa
   return guard(async () => {
     const user = await requireUser();
     const name = s(form.get("name"));
-    if (name.length < 2) return fail("Location name is required.");
+    if (name.length < 2) return fail("Numele locației este obligatoriu.");
 
     const id = newId();
     await db.insert(locations).values({
@@ -56,7 +56,7 @@ export async function createLocationAction(_p: ActionResult | null, form: FormDa
     await log(id, user.id, "location.create", name);
     revalidatePath("/super/locations");
     revalidatePath("/app");
-    return ok("Location created.");
+    return ok("Locație creată.");
   });
 }
 
@@ -67,7 +67,7 @@ export async function updateLocationAction(_p: ActionResult | null, form: FormDa
     // super admin or location admin can edit basics
     if (!user.isSuperAdmin) await assertLocationAdmin(user, id);
     const name = s(form.get("name"));
-    if (name.length < 2) return fail("Location name is required.");
+    if (name.length < 2) return fail("Numele locației este obligatoriu.");
     await db
       .update(locations)
       .set({
@@ -79,13 +79,13 @@ export async function updateLocationAction(_p: ActionResult | null, form: FormDa
     await log(id, user.id, "location.update", name);
     revalidatePath(`/super/locations`);
     revalidatePath(`/loc/${id}`);
-    return ok("Location updated.");
+    return ok("Locație actualizată.");
   });
 }
 
 export async function deleteLocationAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
   const user = await requireUser();
-  if (!user.isSuperAdmin) return fail("Super admin only.");
+  if (!user.isSuperAdmin) return fail("Doar super admin.");
   const id = s(form.get("locationId"));
 
   try {
@@ -105,7 +105,7 @@ export async function deleteLocationAction(_p: ActionResult | null, form: FormDa
     await db.delete(locations).where(eq(locations.id, id));
     await log(null, user.id, "location.delete", id);
   } catch (e) {
-    return fail(e instanceof Error ? e.message : "Could not delete location.");
+    return fail(e instanceof Error ? e.message : "Nu am putut șterge locația.");
   }
 
   revalidatePath("/super/locations");
@@ -122,7 +122,7 @@ export async function setLocationAdminAction(_p: ActionResult | null, form: Form
     const makeAdmin = s(form.get("role")) === "admin";
 
     const m = await getMembership(targetUserId, locationId);
-    if (!m) return fail("That user is not a member of this location.");
+    if (!m) return fail("Acel utilizator nu este membru al acestei locații.");
     await db
       .update(locationMembers)
       .set({ role: makeAdmin ? "admin" : "player" })
@@ -130,7 +130,7 @@ export async function setLocationAdminAction(_p: ActionResult | null, form: Form
     await log(locationId, user.id, makeAdmin ? "admin.grant" : "admin.revoke", targetUserId);
     revalidatePath("/super/admins");
     revalidatePath(`/loc/${locationId}/admin/players`);
-    return ok(makeAdmin ? "Promoted to location admin." : "Admin rights revoked.");
+    return ok(makeAdmin ? "Promovat ca admin de locație." : "Drepturi de admin revocate.");
   });
 }
 
@@ -152,10 +152,10 @@ export async function requestJoinAction(_p: ActionResult | null, form: FormData)
     } else if (byId) {
       loc = (await db.select().from(locations).where(eq(locations.id, byId)).limit(1))[0];
     }
-    if (!loc) return fail("Location not found. Check the invite code.");
+    if (!loc) return fail("Locație negăsită. Verifică codul de invitație.");
 
     const existingMember = await getMembership(user.id, loc.id);
-    if (existingMember) return fail("You are already a member of this location.");
+    if (existingMember) return fail("Ești deja membru al acestei locații.");
 
     if (viaCode) {
       // Auto-join: become an active player immediately, no approval needed.
@@ -172,7 +172,7 @@ export async function requestJoinAction(_p: ActionResult | null, form: FormData)
         .where(and(eq(joinRequests.locationId, loc.id), eq(joinRequests.userId, user.id), eq(joinRequests.status, "pending")));
       await log(loc.id, user.id, "join.auto");
       revalidatePath("/app");
-      return ok(`You've joined ${loc.name}!`);
+      return ok(`Ai intrat în ${loc.name}!`);
     }
 
     const pending = await db
@@ -186,7 +186,7 @@ export async function requestJoinAction(_p: ActionResult | null, form: FormData)
         )
       )
       .limit(1);
-    if (pending[0]) return fail("You already have a pending request for this location.");
+    if (pending[0]) return fail("Ai deja o cerere în așteptare pentru această locație.");
 
     await db.insert(joinRequests).values({
       id: newId(),
@@ -196,7 +196,7 @@ export async function requestJoinAction(_p: ActionResult | null, form: FormData)
     });
     await log(loc.id, user.id, "join.request");
     revalidatePath("/app");
-    return ok(`Request sent to ${loc.name}. Waiting for approval.`);
+    return ok(`Cerere trimisă către ${loc.name}. Aștepți aprobarea.`);
   });
 }
 
@@ -207,8 +207,8 @@ export async function decideJoinAction(_p: ActionResult | null, form: FormData):
     const approve = s(form.get("decision")) === "approve";
 
     const req = (await db.select().from(joinRequests).where(eq(joinRequests.id, requestId)).limit(1))[0];
-    if (!req) return fail("Request not found.");
-    if (req.status !== "pending") return fail("This request was already handled.");
+    if (!req) return fail("Cerere negăsită.");
+    if (req.status !== "pending") return fail("Cererea a fost deja procesată.");
     await assertLocationAdmin(user, req.locationId);
 
     await db
@@ -230,7 +230,7 @@ export async function decideJoinAction(_p: ActionResult | null, form: FormData):
     await log(req.locationId, user.id, approve ? "join.approve" : "join.reject", req.userId);
     revalidatePath(`/loc/${req.locationId}/admin/pending`);
     revalidatePath("/super/pending");
-    return ok(approve ? "Player approved." : "Request rejected.");
+    return ok(approve ? "Jucător aprobat." : "Cerere respinsă.");
   });
 }
 
@@ -254,6 +254,6 @@ export async function updateRulesAction(_p: ActionResult | null, form: FormData)
     }
     await log(locationId, user.id, "rules.update");
     revalidatePath(`/loc/${locationId}/rules`);
-    return ok("Rules updated.");
+    return ok("Reguli actualizate.");
   });
 }

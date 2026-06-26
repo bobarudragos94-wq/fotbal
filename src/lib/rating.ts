@@ -16,8 +16,8 @@ export function proposeRating(votes: number[]): {
 }
 
 export const RATING_LABELS: Record<number, string> = {
-  1: "Top player",
-  2: "Good",
-  3: "Average",
-  4: "Beginner",
+  1: "Top",
+  2: "Bun",
+  3: "Mediu",
+  4: "Începător",
 };

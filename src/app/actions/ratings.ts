@@ -18,14 +18,14 @@ export async function castRatingVoteAction(_p: ActionResult | null, form: FormDa
     const locationId = s(form.get("locationId"));
     const targetUserId = s(form.get("targetUserId"));
     const rating = Number(s(form.get("rating")));
-    if (![1, 2, 3, 4].includes(rating)) return fail("Rating must be 1–4.");
+    if (![1, 2, 3, 4].includes(rating)) return fail("Ratingul trebuie să fie 1–4.");
 
     await assertLocationMember(user, locationId);
-    if (targetUserId === user.id) return fail("You can't vote on your own rating.");
+    if (targetUserId === user.id) return fail("Nu îți poți vota propriul rating.");
 
     const target = await getMembership(targetUserId, locationId);
-    if (!target) return fail("That player is not in this location.");
-    if (target.rating != null) return fail("That player is already rated.");
+    if (!target) return fail("Acel jucător nu este în această locație.");
+    if (target.rating != null) return fail("Acel jucător are deja rating.");
 
     // upsert vote (one per voter/target)
     const existing = await db
@@ -53,7 +53,7 @@ export async function castRatingVoteAction(_p: ActionResult | null, form: FormDa
     }
     revalidatePath(`/loc/${locationId}/rate`);
     revalidatePath(`/loc/${locationId}/admin/ratings`);
-    return ok("Vote recorded.");
+    return ok("Vot înregistrat.");
   });
 }
 
@@ -64,7 +64,7 @@ export async function setPlayerRatingAction(_p: ActionResult | null, form: FormD
     const locationId = s(form.get("locationId"));
     const targetUserId = s(form.get("targetUserId"));
     const rating = Number(s(form.get("rating")));
-    if (![1, 2, 3, 4].includes(rating)) return fail("Rating must be 1–4.");
+    if (![1, 2, 3, 4].includes(rating)) return fail("Ratingul trebuie să fie 1–4.");
     await assertLocationAdmin(user, locationId);
 
     await db
@@ -79,7 +79,7 @@ export async function setPlayerRatingAction(_p: ActionResult | null, form: FormD
 
     revalidatePath(`/loc/${locationId}/admin/ratings`);
     revalidatePath(`/loc/${locationId}/admin/players`);
-    return ok("Rating saved.");
+    return ok("Rating salvat.");
   });
 }
 
@@ -96,6 +96,6 @@ export async function resetLocationRatingsAction(_p: ActionResult | null, form: 
     revalidatePath(`/loc/${locationId}/admin/ratings`);
     revalidatePath(`/loc/${locationId}/admin/players`);
     revalidatePath(`/loc/${locationId}/rate`);
-    return ok("All ratings reset — everyone is unrated again. Voting can restart.");
+    return ok("Toate ratingurile au fost resetate — toți sunt fără rating. Votul poate reîncepe.");
   });
 }

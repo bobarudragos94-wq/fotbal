@@ -40,7 +40,7 @@ export async function createMatchAction(_p: ActionResult | null, form: FormData)
 
     const startsAtLocal = s(form.get("startsAt"));
     const startsAt = startsAtLocal ? Math.floor(new Date(startsAtLocal).getTime() / 1000) : 0;
-    if (!startsAt) return fail("Please pick a date and time.");
+    if (!startsAt) return fail("Alege data și ora.");
 
     const numTeams = Math.max(2, Math.min(6, n(form.get("numTeams")) || 2));
     const playersPerTeam = Math.max(1, n(form.get("playersPerTeam")) || 6);
@@ -61,7 +61,7 @@ export async function createMatchAction(_p: ActionResult | null, form: FormData)
       createdBy: user.id,
     });
     revalidatePath(`/loc/${locationId}`);
-    return ok("Match created.");
+    return ok("Meci creat.");
   });
 }
 
@@ -70,9 +70,9 @@ export async function updateMatchSetupAction(_p: ActionResult | null, form: Form
     const user = await requireUser();
     const matchId = s(form.get("matchId"));
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
-    if (m.status === "finished") return fail("Match is finished.");
+    if (m.status === "finished") return fail("Meciul este încheiat.");
 
     const numTeams = Math.max(2, Math.min(6, n(form.get("numTeams")) || m.numTeams));
     const playersPerTeam = Math.max(1, n(form.get("playersPerTeam")) || m.playersPerTeam);
@@ -92,7 +92,7 @@ export async function updateMatchSetupAction(_p: ActionResult | null, form: Form
       })
       .where(eq(matches.id, matchId));
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok("Match updated.");
+    return ok("Meci actualizat.");
   });
 }
 
@@ -102,11 +102,11 @@ export async function setMatchStatusAction(_p: ActionResult | null, form: FormDa
     const matchId = s(form.get("matchId"));
     const status = s(form.get("status")) as "draft" | "open" | "locked" | "finished";
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
     await db.update(matches).set({ status }).where(eq(matches.id, matchId));
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok(`Match marked ${status}.`);
+    return ok(`Meci marcat ca ${status}.`);
   });
 }
 
@@ -118,10 +118,10 @@ export async function rsvpAction(_p: ActionResult | null, form: FormData): Promi
     const matchId = s(form.get("matchId"));
     const choice = s(form.get("choice")) as "going" | "maybe" | "declined";
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationMember(user, m.locationId);
-    if (m.status === "finished") return fail("This match is finished.");
-    if (m.status === "locked") return fail("The participant list is locked.");
+    if (m.status === "finished") return fail("Acest meci este încheiat.");
+    if (m.status === "locked") return fail("Lista de participanți este blocată.");
 
     const goingCount = (
       await db
@@ -164,8 +164,8 @@ export async function rsvpAction(_p: ActionResult | null, form: FormData): Promi
     }
 
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    if (finalStatus === "waitlist") return ok("Match is full — you're on the waitlist.");
-    return ok("RSVP saved.");
+    if (finalStatus === "waitlist") return ok("Meciul este plin — ești pe lista de rezerve.");
+    return ok("Răspuns salvat.");
   });
 }
 
@@ -197,11 +197,11 @@ export async function promoteWaitlistAction(_p: ActionResult | null, form: FormD
     const matchId = s(form.get("matchId"));
     const participantId = s(form.get("participantId"));
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
     await db.update(matchParticipants).set({ status: "going" }).where(eq(matchParticipants.id, participantId));
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok("Player promoted from waitlist.");
+    return ok("Jucător promovat de pe rezerve.");
   });
 }
 
@@ -212,7 +212,7 @@ export async function confirmRulesAction(_p: ActionResult | null, form: FormData
     const user = await requireUser();
     const matchId = s(form.get("matchId"));
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationMember(user, m.locationId);
 
     const existing = (
@@ -234,7 +234,7 @@ export async function confirmRulesAction(_p: ActionResult | null, form: FormData
       });
     }
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok("Thanks — rules confirmed.");
+    return ok("Mulțumim — reguli confirmate.");
   });
 }
 
@@ -245,7 +245,7 @@ export async function lockMatchAction(_p: ActionResult | null, form: FormData): 
     const user = await requireUser();
     const matchId = s(form.get("matchId"));
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
 
     // Snapshot current ratings for "going" players.
@@ -262,14 +262,14 @@ export async function lockMatchAction(_p: ActionResult | null, form: FormData): 
       )
       .where(and(eq(matchParticipants.matchId, matchId), eq(matchParticipants.status, "going")));
 
-    if (going.length < m.numTeams) return fail("Not enough confirmed players to form the teams.");
+    if (going.length < m.numTeams) return fail("Nu sunt destui jucători confirmați pentru echipe.");
 
     for (const p of going) {
       await db.update(matchParticipants).set({ ratingSnapshot: p.rating ?? null }).where(eq(matchParticipants.id, p.id));
     }
     await db.update(matches).set({ status: "locked" }).where(eq(matches.id, matchId));
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok("Participants locked.");
+    return ok("Listă de participanți blocată.");
   });
 }
 
@@ -278,9 +278,9 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
     const user = await requireUser();
     const matchId = s(form.get("matchId"));
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
-    if (m.status !== "locked") return fail("Lock the participant list first.");
+    if (m.status !== "locked") return fail("Blochează întâi lista de participanți.");
 
     const going = await db
       .select({
@@ -346,12 +346,12 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
     await db.update(matches).set({ teamsGeneratedAt: Math.floor(Date.now() / 1000) }).where(eq(matches.id, matchId));
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     const leftover = result.leftoverIds.length;
-    const teamSummary = `${m.numTeams} teams of ${teamSize}`;
-    const autoNote = unrated.length > 0 ? ` ${unrated.length} unrated player(s) used an auto rating.` : "";
+    const teamSummary = `${m.numTeams} echipe de câte ${teamSize}`;
+    const autoNote = unrated.length > 0 ? ` ${unrated.length} jucător(i) fără rating au primit rating automat.` : "";
     return ok(
       (leftover > 0
-        ? `${teamSummary} generated (spread ${result.spread}). ${leftover} player(s) left without a team — see Reserves.`
-        : `${teamSummary} generated (spread ${result.spread}).`) + autoNote
+        ? `${teamSummary} generate (diferență ${result.spread}). ${leftover} jucător(i) au rămas fără echipă — vezi Rezerve.`
+        : `${teamSummary} generate (diferență ${result.spread}).`) + autoNote
     );
   });
 }
@@ -365,7 +365,7 @@ export async function movePlayerToTeamAction(_p: ActionResult | null, form: Form
     const teamIdRaw = s(form.get("teamId"));
     const teamId = teamIdRaw || null; // empty -> bench to reserves
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
 
     await db
@@ -374,7 +374,7 @@ export async function movePlayerToTeamAction(_p: ActionResult | null, form: Form
       .where(and(eq(matchParticipants.matchId, matchId), eq(matchParticipants.userId, userId)));
     await recomputeTeamStrengths(matchId, m.locationId);
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok(teamId ? "Player moved." : "Player benched to reserves.");
+    return ok(teamId ? "Jucător mutat." : "Jucător trecut la rezerve.");
   });
 }
 
@@ -404,14 +404,14 @@ export async function saveGameAction(_p: ActionResult | null, form: FormData): P
     const user = await requireUser();
     const matchId = s(form.get("matchId"));
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
 
     const homeTeamId = s(form.get("homeTeamId"));
     const awayTeamId = s(form.get("awayTeamId"));
     const homeScore = Math.max(0, n(form.get("homeScore")) || 0);
     const awayScore = Math.max(0, n(form.get("awayScore")) || 0);
-    if (!homeTeamId || !awayTeamId || homeTeamId === awayTeamId) return fail("Pick two different teams.");
+    if (!homeTeamId || !awayTeamId || homeTeamId === awayTeamId) return fail("Alege două echipe diferite.");
 
     await db.insert(matchGames).values({
       id: newId(),
@@ -422,7 +422,7 @@ export async function saveGameAction(_p: ActionResult | null, form: FormData): P
       awayScore,
     });
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok("Score saved.");
+    return ok("Scor salvat.");
   });
 }
 
@@ -432,11 +432,11 @@ export async function deleteGameAction(_p: ActionResult | null, form: FormData):
     const gameId = s(form.get("gameId"));
     const matchId = s(form.get("matchId"));
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
     await db.delete(matchGames).where(eq(matchGames.id, gameId));
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok("Score removed.");
+    return ok("Scor șters.");
   });
 }
 
@@ -449,10 +449,10 @@ export async function togglePaidAction(_p: ActionResult | null, form: FormData):
     const participantId = s(form.get("participantId"));
     const paid = s(form.get("paid")) === "true";
     const m = await loadMatch(matchId);
-    if (!m) return fail("Match not found.");
+    if (!m) return fail("Meci negăsit.");
     await assertLocationAdmin(user, m.locationId);
     await db.update(matchParticipants).set({ paid }).where(eq(matchParticipants.id, participantId));
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok(paid ? "Marked paid." : "Marked unpaid.");
+    return ok(paid ? "Marcat plătit." : "Marcat neplătit.");
   });
 }

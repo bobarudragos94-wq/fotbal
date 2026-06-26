@@ -10,7 +10,7 @@ export default async function ProfilePage() {
   const user = await requirePageUser();
   return (
     <>
-      <AppBar title="Profile" />
+      <AppBar title="Profil" />
       <div className="space-y-5 px-4 py-4">
         <Card className="flex items-center gap-4">
           <Avatar name={display(user)} url={user.avatarUrl} size={56} />
@@ -22,31 +22,31 @@ export default async function ProfilePage() {
         </Card>
 
         <Card>
-          <h2 className="mb-3 font-semibold">Edit profile</h2>
+          <h2 className="mb-3 font-semibold">Editează profilul</h2>
           <ActionForm action={updateProfileAction} className="space-y-4">
             <div>
-              <label className="label" htmlFor="nickname">Nickname <span className="text-slate-400">(shown to everyone)</span></label>
+              <label className="label" htmlFor="nickname">Nickname <span className="text-slate-400">(vizibil pentru toți)</span></label>
               <input id="nickname" name="nickname" defaultValue={user.nickname ?? ""} className="input" required minLength={2} maxLength={24} />
             </div>
             <div>
-              <label className="label" htmlFor="name">Full name <span className="text-slate-400">(private)</span></label>
+              <label className="label" htmlFor="name">Nume complet <span className="text-slate-400">(privat)</span></label>
               <input id="name" name="name" defaultValue={user.name} className="input" required />
             </div>
             <div>
-              <label className="label" htmlFor="phone">Phone</label>
-              <input id="phone" name="phone" defaultValue={user.phone ?? ""} className="input" placeholder="Optional" />
+              <label className="label" htmlFor="phone">Telefon</label>
+              <input id="phone" name="phone" defaultValue={user.phone ?? ""} className="input" placeholder="Opțional" />
             </div>
             <div>
-              <label className="label" htmlFor="avatarUrl">Avatar URL</label>
-              <input id="avatarUrl" name="avatarUrl" defaultValue={user.avatarUrl ?? ""} className="input" placeholder="https://…  (optional)" />
+              <label className="label" htmlFor="avatarUrl">URL avatar</label>
+              <input id="avatarUrl" name="avatarUrl" defaultValue={user.avatarUrl ?? ""} className="input" placeholder="https://…  (opțional)" />
             </div>
-            <SubmitButton pendingText="Saving…">Save changes</SubmitButton>
+            <SubmitButton pendingText="Se salvează…">Salvează</SubmitButton>
           </ActionForm>
         </Card>
 
         <form action={logoutAction}>
           <SubmitButton className="btn-ghost w-full">
-            <Icon.Logout className="h-5 w-5" /> Log out
+            <Icon.Logout className="h-5 w-5" /> Deconectare
           </SubmitButton>
         </form>
       </div>

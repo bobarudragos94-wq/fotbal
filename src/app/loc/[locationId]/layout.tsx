@@ -12,16 +12,16 @@ export default async function LocationLayout({
   const base = `/loc/${params.locationId}`;
 
   const items: NavItem[] = [
-    { href: base, label: "Matches", icon: "Ball", exact: true },
-    { href: `${base}/rules`, label: "Rules", icon: "Book" },
-    { href: `${base}/stats`, label: "Stats", icon: "Chart" },
+    { href: base, label: "Meciuri", icon: "Ball", exact: true },
+    { href: `${base}/rules`, label: "Reguli", icon: "Book" },
+    { href: `${base}/stats`, label: "Statistici", icon: "Chart" },
   ];
   if (ctx.isAdmin) {
-    items.push({ href: `${base}/admin`, label: "Manage", icon: "Shield" });
+    items.push({ href: `${base}/admin`, label: "Admin", icon: "Shield" });
   } else {
-    items.push({ href: `${base}/rate`, label: "Rate", icon: "Users" });
+    items.push({ href: `${base}/rate`, label: "Votează", icon: "Users" });
   }
-  items.push({ href: "/app", label: "Home", icon: "Home", exact: true });
+  items.push({ href: "/app", label: "Acasă", icon: "Home", exact: true });
 
   return (
     <div className="mx-auto min-h-screen max-w-app pb-24">

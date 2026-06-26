@@ -14,26 +14,26 @@ export default async function EditMatchPage({ params }: { params: { locationId: 
 
   return (
     <>
-      <AppBar title="Match Setup" back={`/loc/${params.locationId}/m/${match.id}`} />
+      <AppBar title="Setări meci" back={`/loc/${params.locationId}/m/${match.id}`} />
       <div className="px-4 py-4">
         <Card>
           <ActionForm action={updateMatchSetupAction} className="space-y-4">
             <input type="hidden" name="matchId" value={match.id} />
             <div>
-              <label className="label" htmlFor="title">Title</label>
-              <input id="title" name="title" className="input" defaultValue={match.title ?? ""} placeholder="Optional" />
+              <label className="label" htmlFor="title">Titlu</label>
+              <input id="title" name="title" className="input" defaultValue={match.title ?? ""} placeholder="Opțional" />
             </div>
             <div>
-              <label className="label" htmlFor="startsAt">Date & time</label>
+              <label className="label" htmlFor="startsAt">Data și ora</label>
               <input id="startsAt" name="startsAt" type="datetime-local" className="input" defaultValue={toDateTimeLocal(match.startsAt)} />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="label" htmlFor="numTeams">Teams</label>
+                <label className="label" htmlFor="numTeams">Echipe</label>
                 <input id="numTeams" name="numTeams" type="number" min={2} max={6} defaultValue={match.numTeams} className="input text-center" />
               </div>
               <div>
-                <label className="label" htmlFor="playersPerTeam">Per team</label>
+                <label className="label" htmlFor="playersPerTeam">Per echipă</label>
                 <input id="playersPerTeam" name="playersPerTeam" type="number" min={1} defaultValue={match.playersPerTeam} className="input text-center" />
               </div>
               <div>
@@ -42,14 +42,14 @@ export default async function EditMatchPage({ params }: { params: { locationId: 
               </div>
             </div>
             <div>
-              <label className="label" htmlFor="pitchCost">Pitch cost (lei)</label>
-              <input id="pitchCost" name="pitchCost" type="number" min={0} step="0.01" className="input" defaultValue={match.pitchCost ?? ""} placeholder="Optional" />
+              <label className="label" htmlFor="pitchCost">Cost teren (lei)</label>
+              <input id="pitchCost" name="pitchCost" type="number" min={0} step="0.01" className="input" defaultValue={match.pitchCost ?? ""} placeholder="Opțional" />
             </div>
             <div>
-              <label className="label" htmlFor="notes">Notes</label>
+              <label className="label" htmlFor="notes">Observații</label>
               <textarea id="notes" name="notes" rows={2} className="input py-2" defaultValue={match.notes ?? ""} />
             </div>
-            <SubmitButton pendingText="Saving…">Save changes</SubmitButton>
+            <SubmitButton pendingText="Se salvează…">Salvează</SubmitButton>
           </ActionForm>
         </Card>
       </div>

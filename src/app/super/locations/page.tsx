@@ -20,28 +20,28 @@ export default async function SuperLocations() {
 
   return (
     <>
-      <AppBar title="Locations" />
+      <AppBar title="Locații" />
       <div className="space-y-5 px-4 py-4">
         <Card>
-          <SectionTitle>Create a location</SectionTitle>
+          <SectionTitle>Creează o locație</SectionTitle>
           <ActionForm action={createLocationAction} className="space-y-3" resetOnSuccess>
             <input name="name" required className="input" placeholder="Teren Pipera" />
-            <input name="address" className="input" placeholder="Address (optional)" />
-            <textarea name="description" rows={2} className="input py-2" placeholder="Short description (optional)" />
-            <textarea name="rules" rows={3} className="input py-2" placeholder="Initial rules (optional)" />
-            <SubmitButton pendingText="Creating…">Create location</SubmitButton>
+            <input name="address" className="input" placeholder="Adresă (opțional)" />
+            <textarea name="description" rows={2} className="input py-2" placeholder="Scurtă descriere (opțional)" />
+            <textarea name="rules" rows={3} className="input py-2" placeholder="Reguli inițiale (opțional)" />
+            <SubmitButton pendingText="Se creează…">Creează locația</SubmitButton>
           </ActionForm>
         </Card>
 
         <section>
-          <SectionTitle>All locations ({locs.length})</SectionTitle>
+          <SectionTitle>Toate locațiile ({locs.length})</SectionTitle>
           <div className="space-y-3">
             {locs.map((l) => (
               <LinkCard
                 key={l.id}
                 href={`/super/locations/${l.id}`}
                 title={l.name}
-                subtitle={l.address ?? `${Number(l.members)} players`}
+                subtitle={l.address ?? `${Number(l.members)} jucători`}
                 right={<Badge tone="slate">{l.inviteCode}</Badge>}
               />
             ))}

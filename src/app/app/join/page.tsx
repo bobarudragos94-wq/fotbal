@@ -28,34 +28,34 @@ export default async function JoinPage() {
 
   return (
     <>
-      <AppBar title="Join a Location" back="/app" />
+      <AppBar title="Intră într-o locație" back="/app" />
       <div className="space-y-6 px-4 py-4">
-        <PageHeader title="Join a pitch" subtitle="Use an invite code, or request to join below." />
+        <PageHeader title="Intră într-un teren" subtitle="Folosește un cod de invitație sau cere să intri mai jos." />
 
         <Card>
-          <SectionTitle>Have an invite code?</SectionTitle>
+          <SectionTitle>Ai un cod de invitație?</SectionTitle>
           <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
-            With a code you join instantly — no approval needed.
+            Cu un cod intri instant — fără aprobare.
           </p>
           <ActionForm action={requestJoinAction} className="space-y-3">
             <input
               name="inviteCode"
               className="input uppercase tracking-widest"
-              placeholder="e.g. K7P2QX"
+              placeholder="ex. K7P2QX"
               maxLength={8}
               autoCapitalize="characters"
             />
-            <SubmitButton pendingText="Joining…">Join with code</SubmitButton>
+            <SubmitButton pendingText="Se intră…">Intră cu codul</SubmitButton>
           </ActionForm>
         </Card>
 
         <section>
-          <SectionTitle>Browse locations</SectionTitle>
+          <SectionTitle>Răsfoiește locațiile</SectionTitle>
           <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
-            Without a code, your request needs admin approval.
+            Fără cod, cererea ta are nevoie de aprobarea adminului.
           </p>
           {available.length === 0 ? (
-            <EmptyState title="Nothing to join right now" hint="You're a member of (or awaiting) all locations." icon={<Icon.Pin className="h-8 w-8" />} />
+            <EmptyState title="Nimic de unde să intri acum" hint="Ești deja membru (sau în așteptare) la toate locațiile." icon={<Icon.Pin className="h-8 w-8" />} />
           ) : (
             <div className="space-y-3">
               {available.map((l) => (
@@ -67,7 +67,7 @@ export default async function JoinPage() {
                   </div>
                   <ActionForm action={requestJoinAction}>
                     <input type="hidden" name="locationId" value={l.id} />
-                    <SubmitButton className="btn-ghost btn-sm w-full" pendingText="Sending…">Request to join</SubmitButton>
+                    <SubmitButton className="btn-ghost btn-sm w-full" pendingText="Se trimite…">Cere să intri</SubmitButton>
                   </ActionForm>
                 </Card>
               ))}

@@ -35,23 +35,23 @@ export default async function AdminDashboard({ params }: { params: { locationId:
 
   return (
     <>
-      <AppBar title="Manage" back={base} />
+      <AppBar title="Administrare" back={base} />
       <div className="space-y-5 px-4 py-4">
-        <PageHeader title={ctx.location.name} subtitle="Location admin dashboard" />
+        <PageHeader title={ctx.location.name} subtitle="Panou admin locație" />
 
         <Card>
           <div className="grid grid-cols-4 gap-2">
-            {stat("Players", players)}
-            {stat("Pending", pending)}
-            {stat("Unrated", unrated)}
-            {stat("Open", openMatches)}
+            {stat("Jucători", players)}
+            {stat("Cereri", pending)}
+            {stat("Fără rating", unrated)}
+            {stat("Deschise", openMatches)}
           </div>
         </Card>
 
         <Card className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold">Invite code</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Share it — players with the code join instantly.</p>
+            <p className="text-sm font-semibold">Cod de invitație</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Distribuie-l — jucătorii cu codul intră instant.</p>
           </div>
           <span className="rounded-xl bg-brand-50 px-3 py-2 text-lg font-bold tracking-widest text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
             {ctx.location.inviteCode}
@@ -61,30 +61,30 @@ export default async function AdminDashboard({ params }: { params: { locationId:
         <div className="grid gap-3">
           <Link href={`${base}/admin/new-match`} className="flex items-center gap-3 rounded-2xl bg-brand-600 p-4 text-white hover:bg-brand-700">
             <Icon.Plus className="h-6 w-6" />
-            <div className="flex-1"><p className="font-semibold">Create a match</p><p className="text-xs text-white/80">Set teams, players & cost</p></div>
+            <div className="flex-1"><p className="font-semibold">Creează un meci</p><p className="text-xs text-white/80">Echipe, jucători și cost</p></div>
           </Link>
 
-          <LinkCard href={`${base}/admin/pending`} title="Pending players" subtitle="Approve or reject join requests"
+          <LinkCard href={`${base}/admin/pending`} title="Cereri jucători" subtitle="Aprobă sau respinge cererile"
             right={pending > 0 ? <Badge tone="amber">{pending}</Badge> : undefined} />
-          <LinkCard href={`${base}/admin/players`} title="Players" subtitle="Manage squad & ratings" />
-          <LinkCard href={`${base}/admin/ratings`} title="Ratings" subtitle="Confirm community votes"
+          <LinkCard href={`${base}/admin/players`} title="Jucători" subtitle="Gestionează lotul și ratingurile" />
+          <LinkCard href={`${base}/admin/ratings`} title="Ratinguri" subtitle="Confirmă voturile comunității"
             right={unrated > 0 ? <Badge tone="amber">{unrated}</Badge> : undefined} />
-          <LinkCard href={`${base}/admin/rules`} title="Rules editor" subtitle="Edit the house rules" />
+          <LinkCard href={`${base}/admin/rules`} title="Editor reguli" subtitle="Editează regulile casei" />
         </div>
 
         {ctx.user.isSuperAdmin && (
           <Card className="border-red-200 dark:border-red-900/60">
-            <p className="text-sm font-semibold">Danger zone</p>
+            <p className="text-sm font-semibold">Zonă periculoasă</p>
             <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
-              Permanently delete this location with all its players, matches, scores and history.
+              Șterge definitiv această locație cu toți jucătorii, meciurile, scorurile și istoricul.
             </p>
             <InlineAction
               action={deleteLocationAction}
               hidden={{ locationId: params.locationId }}
               className="btn-danger w-full"
-              confirm="Delete this location and ALL its data? This cannot be undone."
+              confirm="Ștergi această locație și TOATE datele ei? Nu se poate anula."
             >
-              Delete location
+              Șterge locația
             </InlineAction>
           </Card>
         )}

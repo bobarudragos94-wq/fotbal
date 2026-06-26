@@ -22,7 +22,7 @@ export default async function LocationHome({ params }: { params: { locationId: s
         right={
           ctx.isAdmin ? (
             <Link href={`${base}/admin/new-match`} className="btn-primary btn-sm h-9 min-h-0">
-              <Icon.Plus className="h-4 w-4" /> Match
+              <Icon.Plus className="h-4 w-4" /> Meci
             </Link>
           ) : undefined
         }
@@ -35,11 +35,11 @@ export default async function LocationHome({ params }: { params: { locationId: s
         )}
 
         <section>
-          <SectionTitle>Upcoming matches</SectionTitle>
+          <SectionTitle>Meciuri viitoare</SectionTitle>
           {upcoming.length === 0 ? (
             <EmptyState
-              title="No matches scheduled"
-              hint={ctx.isAdmin ? "Create one with the button up top." : "Check back soon — an admin will set one up."}
+              title="Niciun meci programat"
+              hint={ctx.isAdmin ? "Creează unul cu butonul de sus." : "Revino curând — un admin va programa unul."}
               icon={<Icon.Calendar className="h-8 w-8" />}
             />
           ) : (
@@ -70,7 +70,7 @@ export default async function LocationHome({ params }: { params: { locationId: s
 
         {past.length > 0 && (
           <section>
-            <SectionTitle>Past matches</SectionTitle>
+            <SectionTitle>Meciuri trecute</SectionTitle>
             <div className="space-y-3">
               {past.slice(0, 10).map((m) => (
                 <Link key={m.id} href={`${base}/m/${m.id}`} className="card flex items-center justify-between gap-3 hover:border-brand-300 dark:hover:border-brand-700">

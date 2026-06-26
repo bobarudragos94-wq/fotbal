@@ -13,14 +13,14 @@ export default async function RulesPage({ params }: { params: { locationId: stri
   return (
     <>
       <AppBar
-        title="Rules"
-        right={ctx.isAdmin ? <Link href={`${base}/admin/rules`} className="btn-ghost btn-sm h-9 min-h-0">Edit</Link> : undefined}
+        title="Reguli"
+        right={ctx.isAdmin ? <Link href={`${base}/admin/rules`} className="btn-ghost btn-sm h-9 min-h-0">Editează</Link> : undefined}
       />
       <div className="space-y-4 px-4 py-4">
         {!rules?.content ? (
           <EmptyState
-            title="No rules set yet"
-            hint={ctx.isAdmin ? "Add the house rules so everyone's on the same page." : "The admin hasn't added rules yet."}
+            title="Încă nu sunt reguli"
+            hint={ctx.isAdmin ? "Adaugă regulile casei ca toți să fie pe aceeași pagină." : "Adminul n-a adăugat încă reguli."}
             icon={<Icon.Book className="h-8 w-8" />}
           />
         ) : (
@@ -31,7 +31,7 @@ export default async function RulesPage({ params }: { params: { locationId: stri
           </Card>
         )}
         <p className="text-center text-xs text-slate-400">
-          You confirm you've read the rules on each match's page.
+          Confirmi că ai citit regulile pe pagina fiecărui meci.
         </p>
       </div>
     </>

@@ -8,10 +8,10 @@ export default async function Landing() {
   if (user) redirect("/app");
 
   const features = [
-    { icon: Icon.Pin, title: "Multiple pitches", text: "Each location is its own world — players, rules, matches and history kept separate." },
-    { icon: Icon.Users, title: "Balanced teams", text: "Smart, controlled randomization splits players into fair teams every time." },
-    { icon: Icon.Calendar, title: "RSVP & waitlist", text: "Going, maybe or out. Full match? Players roll onto the waitlist automatically." },
-    { icon: Icon.Chart, title: "Scores & stats", text: "Track games, standings, win rates and a full match history per location." },
+    { icon: Icon.Pin, title: "Mai multe terenuri", text: "Fiecare locație e separată — jucători, reguli, meciuri și istoric, toate independente." },
+    { icon: Icon.Users, title: "Echipe echilibrate", text: "Randomizare controlată care împarte jucătorii în echipe corecte de fiecare dată." },
+    { icon: Icon.Calendar, title: "Înscrieri & rezerve", text: "Vin, poate sau nu. Meci plin? Jucătorii intră automat pe lista de rezerve." },
+    { icon: Icon.Chart, title: "Scoruri & statistici", text: "Urmărește meciuri, clasamente, procent de victorii și tot istoricul per locație." },
   ];
 
   return (
@@ -25,18 +25,18 @@ export default async function Landing() {
         </div>
 
         <h1 className="text-4xl font-extrabold leading-tight tracking-tight">
-          Organize your<br />football nights<br />
-          <span className="text-accent-400">without the chaos.</span>
+          Organizează-ți<br />serile de fotbal<br />
+          <span className="text-accent-400">fără haos.</span>
         </h1>
         <p className="mt-4 max-w-sm text-base leading-relaxed text-white/80">
-          Set up your pitch, approve your mates, confirm who's in, and get fair, balanced
-          teams in one tap. Built mobile-first for the group chat era.
+          Îți faci terenul, îți accepți gașca, vezi cine vine și primești echipe corecte
+          și echilibrate dintr-un tap. Gândit mobile-first pentru era grupului de WhatsApp.
         </p>
 
         <div className="mt-8 flex flex-col gap-3">
-          <Link href="/register" className="btn-accent w-full text-base">Create an account</Link>
+          <Link href="/register" className="btn-accent w-full text-base">Creează cont</Link>
           <Link href="/login" className="btn w-full border border-white/30 bg-white/10 text-white hover:bg-white/20">
-            I already have an account
+            Am deja cont
           </Link>
         </div>
 
@@ -55,7 +55,7 @@ export default async function Landing() {
         </div>
 
         <p className="mt-12 text-center text-xs text-white/50">
-          Install it as an app: open in your browser and tap “Add to Home Screen”.
+          Instaleaz-o ca aplicație: deschide în browser și apasă „Adaugă la ecranul principal".
         </p>
       </div>
     </main>
