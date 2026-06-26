@@ -82,3 +82,20 @@ export async function setPlayerRatingAction(_p: ActionResult | null, form: FormD
     return ok("Rating saved.");
   });
 }
+
+/** Admin: wipe every rating + vote in a location so the squad is re-voted from scratch. */
+export async function resetLocationRatingsAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    const locationId = s(form.get("locationId"));
+    await assertLocationAdmin(user, locationId);
+
+    await db.update(locationMembers).set({ rating: null }).where(eq(locationMembers.locationId, locationId));
+    await db.delete(ratingVotes).where(eq(ratingVotes.locationId, locationId));
+
+    revalidatePath(`/loc/${locationId}/admin/ratings`);
+    revalidatePath(`/loc/${locationId}/admin/players`);
+    revalidatePath(`/loc/${locationId}/rate`);
+    return ok("All ratings reset — everyone is unrated again. Voting can restart.");
+  });
+}

@@ -1,6 +1,6 @@
 import { requireLocationAdmin } from "@/lib/locationContext";
 import { getUnratedPlayers } from "@/lib/queries";
-import { setPlayerRatingAction } from "@/app/actions/ratings";
+import { setPlayerRatingAction, resetLocationRatingsAction } from "@/app/actions/ratings";
 import { AppBar } from "@/components/AppBar";
 import { Card, EmptyState, Avatar, Badge } from "@/components/ui";
 import { InlineAction } from "@/components/Form";
@@ -16,8 +16,25 @@ export default async function AdminRatingsPage({ params }: { params: { locationI
       <AppBar title="Confirm Ratings" back={`/loc/${params.locationId}/admin`} />
       <div className="space-y-4 px-4 py-4">
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Players are rated by community vote. Confirm the proposed rating, or override it. Teams can only be generated once everyone is rated.
+          Players are rated by community vote. Confirm the proposed rating, or override it. You can also generate
+          teams before everyone is rated — unrated players get an automatic rating.
         </p>
+
+        <Card className="border-dashed">
+          <p className="text-sm font-semibold">Reset all ratings</p>
+          <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+            Clears every player&apos;s rating and all votes in this location, so the whole squad is re-voted from
+            scratch. Use this before a match if there are disputes.
+          </p>
+          <InlineAction
+            action={resetLocationRatingsAction}
+            hidden={{ locationId: params.locationId }}
+            className="btn-danger w-full"
+            confirm="Reset ALL ratings and votes in this location? Everyone becomes unrated and must be voted again."
+          >
+            Reset all ratings & votes
+          </InlineAction>
+        </Card>
         {unrated.length === 0 ? (
           <EmptyState title="All players rated" hint="You're ready to generate balanced teams." icon={<Icon.Users className="h-8 w-8" />} />
         ) : (
