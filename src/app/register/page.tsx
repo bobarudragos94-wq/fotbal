@@ -6,7 +6,7 @@ import { ActionForm, SubmitButton } from "@/components/Form";
 import { OAuthButtons, OAuthError } from "@/components/OAuthButtons";
 import { Icon } from "@/components/icons";
 
-export default async function RegisterPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function RegisterPage({ searchParams }: { searchParams: { error?: string; oauth?: string } }) {
   if (await getCurrentUser()) redirect("/app");
   return (
     <main className="mx-auto flex min-h-screen max-w-app flex-col justify-center px-5 py-10">
@@ -22,7 +22,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: { e
       </p>
 
       <OAuthError error={searchParams.error} />
-      <OAuthButtons />
+      <OAuthButtons force={searchParams.oauth === "1"} />
 
       <ActionForm action={registerAction} className="space-y-4">
         <div>

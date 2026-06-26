@@ -19,7 +19,15 @@ function FacebookIcon() {
   );
 }
 
-export function OAuthButtons() {
+/**
+ * Buttons are hidden by default so regular users don't see OAuth yet.
+ * They show when OAUTH_PUBLIC="true" (launch for everyone) or when `force`
+ * is true (e.g. you visit /login?oauth=1 to test it yourself).
+ */
+export function OAuthButtons({ force = false }: { force?: boolean }) {
+  const publicEnabled = process.env.OAUTH_PUBLIC === "true";
+  if (!publicEnabled && !force) return null;
+
   const google = providerConfigured("google");
   const facebook = providerConfigured("facebook");
   if (!google && !facebook) return null;
