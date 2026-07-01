@@ -1,19 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { savePushSubscriptionAction, deletePushSubscriptionAction } from "@/app/actions/notifications";
+import { deletePushSubscriptionAction } from "@/app/actions/notifications";
 import { emitToast } from "./Toast";
-
-const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const raw = atob(base64);
-  const arr = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
-  return arr;
-}
+import { VAPID_PUBLIC_KEY, pushSupported, isSubscribed, subscribeToPush } from "./pushShared";
 
 export function PushManager() {
   const [supported, setSupported] = useState(false);
@@ -21,16 +11,11 @@ export function PushManager() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const ok = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && !!VAPID;
-    setSupported(ok);
-    if (!ok) return;
-    navigator.serviceWorker.ready
-      .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => setSubscribed(!!sub))
-      .catch(() => {});
+    setSupported(pushSupported());
+    isSubscribed().then(setSubscribed);
   }, []);
 
-  if (!VAPID) {
+  if (!VAPID_PUBLIC_KEY) {
     return (
       <p className="text-sm text-slate-500 dark:text-slate-400">
         Notificările pe telefon nu sunt configurate încă (lipsesc cheile VAPID).
@@ -47,30 +32,14 @@ export function PushManager() {
 
   async function enable() {
     setBusy(true);
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        emitToast("Permisiunea pentru notificări a fost refuzată.", "error");
-        return;
-      }
-      await navigator.serviceWorker.register("/sw.js").catch(() => {});
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID!) as unknown as BufferSource,
-      });
-      const res = await savePushSubscriptionAction(JSON.stringify(sub));
-      if (res.ok) {
-        setSubscribed(true);
-        emitToast(res.message ?? "Notificări active.", "success");
-      } else {
-        emitToast(res.error, "error");
-      }
-    } catch {
-      emitToast("Nu am putut activa notificările.", "error");
-    } finally {
-      setBusy(false);
+    const res = await subscribeToPush();
+    if (res.ok) {
+      setSubscribed(true);
+      emitToast(res.message ?? "Notificări active.", "success");
+    } else {
+      emitToast(res.error ?? "Nu am putut activa notificările.", "error");
     }
+    setBusy(false);
   }
 
   async function disable() {

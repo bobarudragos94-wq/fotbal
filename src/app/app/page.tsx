@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requirePageUser } from "@/lib/page";
 import { display } from "@/lib/auth";
 import { getUserLocations, getUserPendingRequests, getMemberCounts } from "@/lib/queries";
+import { PushPrompt } from "@/components/PushPrompt";
 import { AppBar } from "@/components/AppBar";
 import { PageHeader, Card, SectionTitle, EmptyState, Badge, LinkCard } from "@/components/ui";
 import { Icon } from "@/components/icons";
@@ -19,6 +20,8 @@ export default async function MyLocationsPage() {
       <AppBar title="Locațiile mele" />
       <div className="space-y-5 px-4 py-4">
         <PageHeader title={`Salut, ${display(user).split(" ")[0]} 👋`} subtitle="Alege un teren ca să vezi ce urmează." />
+
+        <PushPrompt />
 
         {user.isSuperAdmin && (
           <Link href="/super" className="flex items-center gap-3 rounded-2xl bg-slate-900 p-4 text-white dark:bg-slate-800">
