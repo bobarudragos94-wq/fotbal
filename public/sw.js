@@ -1,5 +1,5 @@
 // Minimal offline-first service worker for the app shell.
-const CACHE = "fgm-v1";
+const CACHE = "fgm-v2";
 const APP_SHELL = ["/", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
@@ -46,4 +46,31 @@ self.addEventListener("fetch", (event) => {
       }))
     );
   }
+});
+
+// --- Web Push ---
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = {}; }
+  const title = data.title || "Football Group Manager";
+  const options = {
+    body: data.body || "",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    data: { url: data.url || "/app" },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/app";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) {
+        if ("focus" in c) { c.navigate(url); return c.focus(); }
+      }
+      return clients.openWindow(url);
+    })
+  );
 });

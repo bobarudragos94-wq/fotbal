@@ -21,6 +21,8 @@ import {
 } from "@/lib/permissions";
 import { newId } from "@/lib/ids";
 import { generateBalancedTeams, TEAM_NAMES, type BalancePlayer } from "@/lib/teams";
+import { notifyMembers } from "@/lib/notify";
+import { formatDateTime } from "@/lib/format";
 import { ActionResult, fail, ok, guard } from "@/lib/actionResult";
 
 const s = (v: FormDataEntryValue | null) => (v ?? "").toString().trim();
@@ -60,6 +62,16 @@ export async function createMatchAction(_p: ActionResult | null, form: FormData)
       notes: s(form.get("notes")) || null,
       createdBy: user.id,
     });
+    await notifyMembers(
+      locationId,
+      {
+        type: "match_created",
+        title: "Meci nou",
+        body: `${s(form.get("title")) ? s(form.get("title")) + " · " : ""}${formatDateTime(startsAt)}`,
+        url: `/loc/${locationId}/m/${id}`,
+      },
+      user.id
+    );
     revalidatePath(`/loc/${locationId}`);
     return ok("Meci creat.");
   });
@@ -268,6 +280,18 @@ export async function lockMatchAction(_p: ActionResult | null, form: FormData): 
       await db.update(matchParticipants).set({ ratingSnapshot: p.rating ?? null }).where(eq(matchParticipants.id, p.id));
     }
     await db.update(matches).set({ status: "locked" }).where(eq(matches.id, matchId));
+
+    // If confirmed players still need a rating, ask everyone to vote.
+    const unratedCount = going.filter((p) => p.rating == null).length;
+    if (unratedCount > 0) {
+      await notifyMembers(m.locationId, {
+        type: "vote_needed",
+        title: "Votează rankingurile",
+        body: `${unratedCount} jucător(i) au nevoie de rating pentru meci. Votează acum.`,
+        url: `/loc/${m.locationId}/m/${matchId}`,
+      });
+    }
+
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok("Listă de participanți blocată.");
   });

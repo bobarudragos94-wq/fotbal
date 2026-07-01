@@ -180,6 +180,32 @@ export const auditLogs = sqliteTable("audit_logs", {
   locIdx: index("audit_logs_loc_idx").on(t.locationId, t.createdAt),
 }));
 
+export const notifications = sqliteTable("notifications", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  locationId: text("location_id"),
+  type: text("type").notNull(), // "match_created" | "vote_needed"
+  title: text("title").notNull(),
+  body: text("body"),
+  url: text("url"),
+  read: integer("read", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at").notNull().default(now),
+}, (t) => ({
+  userIdx: index("notifications_user_idx").on(t.userId, t.createdAt),
+}));
+
+export const pushSubscriptions = sqliteTable("push_subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: integer("created_at").notNull().default(now),
+}, (t) => ({
+  endpointIdx: uniqueIndex("push_subscriptions_endpoint_idx").on(t.endpoint),
+  userIdx: index("push_subscriptions_user_idx").on(t.userId),
+}));
+
 export type User = typeof users.$inferSelect;
 export type Location = typeof locations.$inferSelect;
 export type LocationMember = typeof locationMembers.$inferSelect;

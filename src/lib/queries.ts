@@ -12,6 +12,7 @@ import {
   teams,
   matchGames,
   users,
+  notifications,
 } from "@/db/schema";
 import { computeStandings } from "./standings";
 import { proposeRating } from "./rating";
@@ -232,4 +233,30 @@ export async function getPlayerStats(locationId: string, userId: string) {
   }
   const winRate = played > 0 ? Math.round((wins / played) * 100) : 0;
   return { played, wins, winRate };
+}
+
+export async function getNotifications(userId: string, limit = 40) {
+  try {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  } catch {
+    return [];
+  }
+}
+
+/** Resilient: returns 0 if the notifications table isn't there yet. */
+export async function getUnreadCount(userId: string): Promise<number> {
+  try {
+    const rows = await db
+      .select({ c: sql<number>`count(*)` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.read, false)));
+    return Number(rows[0]?.c ?? 0);
+  } catch {
+    return 0;
+  }
 }

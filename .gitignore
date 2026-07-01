@@ -21,3 +21,6 @@ turso-init.sql
 
 # generated demo players SQL
 sud-arena-demo.sql
+
+# generated notifications tables SQL
+notifications-tables.sql
