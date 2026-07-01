@@ -8,6 +8,7 @@ import {
   matchParticipants,
   teams,
   matchGames,
+  matchScorers,
   locationMembers,
   ratingVotes,
 } from "@/db/schema";
@@ -461,6 +462,36 @@ export async function deleteGameAction(_p: ActionResult | null, form: FormData):
     await db.delete(matchGames).where(eq(matchGames.id, gameId));
     revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
     return ok("Scor șters.");
+  });
+}
+
+/** Save goal scorers for a match (goals per player, from `goals-<userId>` fields). */
+export async function saveScorersAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    const matchId = s(form.get("matchId"));
+    const m = await loadMatch(matchId);
+    if (!m) return fail("Meci negăsit.");
+    await assertLocationAdmin(user, m.locationId);
+
+    const rows: { id: string; matchId: string; userId: string; goals: number }[] = [];
+    let total = 0;
+    for (const [key, value] of form.entries()) {
+      if (!key.startsWith("goals-")) continue;
+      const userId = key.slice("goals-".length);
+      const goals = Math.max(0, Math.min(99, Math.floor(Number(value) || 0)));
+      if (goals > 0) {
+        rows.push({ id: newId(), matchId, userId, goals });
+        total += goals;
+      }
+    }
+
+    await db.delete(matchScorers).where(eq(matchScorers.matchId, matchId));
+    if (rows.length) await db.insert(matchScorers).values(rows);
+
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
+    revalidatePath(`/loc/${m.locationId}/stats`);
+    return ok(`Marcatori salvați (${total} goluri).`);
   });
 }
 

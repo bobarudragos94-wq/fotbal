@@ -161,6 +161,17 @@ export const matchGames = sqliteTable("match_games", {
   matchIdx: index("match_games_match_idx").on(t.matchId),
 }));
 
+/** Goals scored by a player in a match (goal count per player per match). */
+export const matchScorers = sqliteTable("match_scorers", {
+  id: text("id").primaryKey(),
+  matchId: text("match_id").notNull().references(() => matches.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  goals: integer("goals").notNull().default(0),
+}, (t) => ({
+  uniq: uniqueIndex("match_scorers_uniq").on(t.matchId, t.userId),
+  matchIdx: index("match_scorers_match_idx").on(t.matchId),
+}));
+
 export const locationRules = sqliteTable("location_rules", {
   locationId: text("location_id").primaryKey().references(() => locations.id, { onDelete: "cascade" }),
   content: text("content").notNull().default(""),

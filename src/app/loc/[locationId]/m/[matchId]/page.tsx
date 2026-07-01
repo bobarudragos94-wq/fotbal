@@ -9,6 +9,7 @@ import {
   getMatchStandings,
   getRules,
   getUnratedPlayers,
+  getMatchScorers,
   type ParticipantRow,
 } from "@/lib/queries";
 import {
@@ -22,6 +23,7 @@ import {
   saveGameAction,
   deleteGameAction,
   togglePaidAction,
+  saveScorersAction,
 } from "@/app/actions/matches";
 import { castRatingVoteAction } from "@/app/actions/ratings";
 import { fillMatchWithDemosAction } from "@/app/actions/demo";
@@ -58,6 +60,8 @@ export default async function MatchPage({
     getRules(params.locationId),
   ]);
   const standings = teams.length ? await getMatchStandings(params.matchId) : [];
+  const scorers = await getMatchScorers(params.matchId);
+  const goalsByUser = new Map(scorers.map((sc) => [sc.userId, sc.goals]));
 
   const base = `/loc/${params.locationId}`;
   const me = participants.find((p) => p.userId === ctx.user.id);
@@ -442,6 +446,51 @@ export default async function MatchPage({
                     </select>
                   </div>
                   <SubmitButton className="btn-primary w-full btn-sm" pendingText="Se salvează…">Salvează scorul</SubmitButton>
+                </ActionForm>
+              </Card>
+            )}
+          </section>
+        )}
+
+        {/* Marcatori (goal scorers) */}
+        {(scorers.length > 0 || (ctx.isAdmin && (match.status === "locked" || match.status === "finished"))) && (
+          <section>
+            <SectionTitle>Marcatori</SectionTitle>
+
+            {scorers.length > 0 && (
+              <Card className="mb-3">
+                <div className="flex flex-wrap gap-2">
+                  {scorers.map((sc) => (
+                    <Badge key={sc.userId} tone="brand">
+                      <Icon.Ball className="h-3.5 w-3.5" /> {sc.name} · {sc.goals}
+                    </Badge>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {ctx.isAdmin && (match.status === "locked" || match.status === "finished") && (
+              <Card>
+                <p className="mb-2 text-sm font-medium">Introdu golurile fiecărui jucător</p>
+                <ActionForm action={saveScorersAction} className="space-y-2">
+                  <input type="hidden" name="matchId" value={match.id} />
+                  <div className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                    {going.map((p) => (
+                      <div key={p.userId} className="flex items-center gap-3 py-2">
+                        <Avatar name={p.name} url={p.avatarUrl} size={30} />
+                        <span className="flex-1 truncate text-sm font-medium">{p.name}</span>
+                        <input
+                          name={`goals-${p.userId}`}
+                          type="number"
+                          min={0}
+                          max={99}
+                          defaultValue={goalsByUser.get(p.userId) ?? 0}
+                          className="input h-10 min-h-0 w-16 text-center"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <SubmitButton className="btn-primary w-full btn-sm" pendingText="Se salvează…">Salvează marcatorii</SubmitButton>
                 </ActionForm>
               </Card>
             )}

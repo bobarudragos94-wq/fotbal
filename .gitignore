@@ -24,3 +24,6 @@ sud-arena-demo.sql
 
 # generated notifications tables SQL
 notifications-tables.sql
+
+# generated match_scorers table SQL
+match-scorers-table.sql

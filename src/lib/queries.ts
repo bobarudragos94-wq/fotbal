@@ -11,6 +11,7 @@ import {
   matchParticipants,
   teams,
   matchGames,
+  matchScorers,
   users,
   notifications,
 } from "@/db/schema";
@@ -259,4 +260,65 @@ export async function getUnreadCount(userId: string): Promise<number> {
   } catch {
     return 0;
   }
+}
+
+/** Goals per player for a match (for the admin editor + display). */
+export async function getMatchScorers(matchId: string) {
+  try {
+    return await db
+      .select({ userId: matchScorers.userId, name: displayName, goals: matchScorers.goals })
+      .from(matchScorers)
+      .innerJoin(users, eq(users.id, matchScorers.userId))
+      .where(eq(matchScorers.matchId, matchId))
+      .orderBy(desc(matchScorers.goals));
+  } catch {
+    return [];
+  }
+}
+
+export type PlayerAgg = { played: number; wins: number; goals: number };
+
+/** Aggregate played / wins / goals per player across a location's finished matches. */
+export async function getLocationPlayerStats(locationId: string): Promise<Map<string, PlayerAgg>> {
+  const stats = new Map<string, PlayerAgg>();
+  const bump = (uid: string, fn: (s: PlayerAgg) => void) => {
+    const s = stats.get(uid) ?? { played: 0, wins: 0, goals: 0 };
+    fn(s);
+    stats.set(uid, s);
+  };
+
+  const finished = await db
+    .select({ id: matches.id })
+    .from(matches)
+    .where(and(eq(matches.locationId, locationId), eq(matches.status, "finished")));
+
+  for (const fm of finished) {
+    const parts = await db
+      .select({ userId: matchParticipants.userId, teamId: matchParticipants.teamId })
+      .from(matchParticipants)
+      .where(and(eq(matchParticipants.matchId, fm.id), eq(matchParticipants.status, "going")));
+    const standings = await getMatchStandings(fm.id);
+    const winner = standings.length && standings[0].played > 0 ? standings[0].teamId : null;
+    for (const p of parts) {
+      if (!p.teamId) continue;
+      bump(p.userId, (s) => {
+        s.played++;
+        if (winner && p.teamId === winner) s.wins++;
+      });
+    }
+  }
+
+  // Goals (resilient if the table isn't migrated yet).
+  try {
+    const goalRows = await db
+      .select({ userId: matchScorers.userId, goals: matchScorers.goals })
+      .from(matchScorers)
+      .innerJoin(matches, eq(matches.id, matchScorers.matchId))
+      .where(and(eq(matches.locationId, locationId), eq(matches.status, "finished")));
+    for (const g of goalRows) bump(g.userId, (s) => (s.goals += g.goals));
+  } catch {
+    /* no scorers table yet */
+  }
+
+  return stats;
 }
