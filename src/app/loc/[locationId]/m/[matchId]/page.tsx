@@ -251,15 +251,16 @@ export default async function MatchPage({
                     <Avatar name={p.name} url={p.avatarUrl} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold">{p.name}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {p.proposal.count === 0
-                          ? "No votes yet"
-                          : ctx.isAdmin
-                            ? `${p.proposal.count} vote(s) · proposed ★${p.proposal.rounded} (avg ${p.proposal.mean})`
-                            : `${p.proposal.count} vote(s) so far`}
-                      </p>
+                      {ctx.isAdmin && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {p.proposal.count === 0
+                            ? "Niciun vot încă"
+                            : `${p.proposal.count} voturi · propus ★${p.proposal.rounded} (medie ${p.proposal.mean})`}
+                        </p>
+                      )}
                     </div>
-                    {p.myVote && <Badge tone="brand">You: ★{p.myVote}</Badge>}
+                    {p.myVote &&
+                      (ctx.isAdmin ? <Badge tone="brand">Tu: ★{p.myVote}</Badge> : <Badge tone="green">Ai votat</Badge>)}
                   </div>
 
                   {p.userId !== ctx.user.id && (
