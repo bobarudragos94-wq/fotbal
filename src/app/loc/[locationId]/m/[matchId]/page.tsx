@@ -23,7 +23,7 @@ import {
   deleteGameAction,
   togglePaidAction,
 } from "@/app/actions/matches";
-import { castRatingVoteAction, setPlayerRatingAction } from "@/app/actions/ratings";
+import { castRatingVoteAction } from "@/app/actions/ratings";
 import { fillMatchWithDemosAction } from "@/app/actions/demo";
 import { AppBar } from "@/components/AppBar";
 import { Card, SectionTitle, Badge, StatusBadge, Avatar, RatingDot, EmptyState } from "@/components/ui";
@@ -283,21 +283,13 @@ export default async function MatchPage({
                   )}
 
                   {ctx.isAdmin && (
-                    <>
-                      <p className="mb-1 mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">Confirmă ratingul final</p>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[1, 2, 3, 4, 5, 6].map((r) => (
-                          <InlineAction
-                            key={r}
-                            action={setPlayerRatingAction}
-                            hidden={{ locationId: params.locationId, targetUserId: p.userId, rating: String(r) }}
-                            className={`btn-sm w-full ${p.proposal.rounded === r ? "btn-accent" : "btn-ghost"}`}
-                          >
-                            ★{r}
-                          </InlineAction>
-                        ))}
-                      </div>
-                    </>
+                    <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                      Confirmă ratingul final din{" "}
+                      <Link href={`${base}/admin/ratings`} className="font-semibold text-brand-600 dark:text-brand-400">
+                        panoul de admin → Ratinguri
+                      </Link>
+                      .
+                    </p>
                   )}
                 </Card>
               ))}
