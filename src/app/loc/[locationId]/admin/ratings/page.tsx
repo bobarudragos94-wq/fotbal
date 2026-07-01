@@ -53,8 +53,8 @@ export default async function AdminRatingsPage({ params }: { params: { locationI
                 {p.proposal.rounded && <Badge tone="amber">Propus ★{p.proposal.rounded}</Badge>}
               </div>
               <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">Confirmă ratingul final</p>
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 4].map((r) => (
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3, 4, 5, 6].map((r) => (
                   <InlineAction
                     key={r}
                     action={setPlayerRatingAction}

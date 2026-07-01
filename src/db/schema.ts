@@ -55,7 +55,7 @@ export const locations = sqliteTable("locations", {
 
 /**
  * Membership of a user in a location, with per-location role and rating.
- * rating: 1..4 visual (1 = best). Internally converted to strength (1->4 ... 4->1).
+ * rating: 1..6 visual (1 = best). Internally converted to strength (1->6 ... 6->1).
  * status: "active" once approved.
  */
 export const locationMembers = sqliteTable("location_members", {
@@ -63,7 +63,7 @@ export const locationMembers = sqliteTable("location_members", {
   locationId: text("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   role: text("role", { enum: ["admin", "player"] }).notNull().default("player"),
-  rating: integer("rating"), // 1..4, null = unrated
+  rating: integer("rating"), // 1..6, null = unrated
   status: text("status", { enum: ["active"] }).notNull().default("active"),
   joinedAt: integer("joined_at").notNull().default(now),
 }, (t) => ({
@@ -94,7 +94,7 @@ export const ratingVotes = sqliteTable("rating_votes", {
   locationId: text("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
   targetUserId: text("target_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   voterUserId: text("voter_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  rating: integer("rating").notNull(), // 1..4
+  rating: integer("rating").notNull(), // 1..6
   createdAt: integer("created_at").notNull().default(now),
 }, (t) => ({
   uniq: uniqueIndex("rating_votes_uniq").on(t.locationId, t.targetUserId, t.voterUserId),

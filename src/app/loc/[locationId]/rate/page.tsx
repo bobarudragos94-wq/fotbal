@@ -16,7 +16,7 @@ export default async function RatePage({ params }: { params: { locationId: strin
       <AppBar title="Votează jucători" />
       <div className="space-y-4 px-4 py-4">
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Ajută adminul să evalueze jucătorii noi. 1 = top, 4 = începător. Adminul confirmă ratingul final.
+          Ajută adminul să evalueze jucătorii noi. 1 = top, 6 = începător. Adminul confirmă ratingul final.
         </p>
 
         {unrated.length === 0 ? (
@@ -41,8 +41,8 @@ export default async function RatePage({ params }: { params: { locationId: strin
               {p.userId === ctx.user.id ? (
                 <p className="text-sm text-slate-400">Nu te poți evalua pe tine.</p>
               ) : (
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 4].map((r) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3, 4, 5, 6].map((r) => (
                     <InlineAction
                       key={r}
                       action={castRatingVoteAction}

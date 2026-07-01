@@ -299,7 +299,7 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
     const unrated = going.filter((p) => p.rating == null);
     const ratedValues = going.filter((p) => p.rating != null).map((p) => p.rating as number);
     const neutral = ratedValues.length
-      ? Math.min(4, Math.max(1, Math.round(ratedValues.reduce((s, v) => s + v, 0) / ratedValues.length)))
+      ? Math.min(6, Math.max(1, Math.round(ratedValues.reduce((s, v) => s + v, 0) / ratedValues.length)))
       : 3;
 
     const fallback = new Map<string, number>();
@@ -390,7 +390,7 @@ async function recomputeTeamStrengths(matchId: string, locationId: string) {
   const totals = new Map<string, number>();
   for (const r of rows) {
     if (!r.teamId || r.rating == null) continue;
-    totals.set(r.teamId, (totals.get(r.teamId) ?? 0) + (5 - r.rating));
+    totals.set(r.teamId, (totals.get(r.teamId) ?? 0) + (7 - r.rating));
   }
   for (const [teamId, total] of totals) {
     await db.update(teams).set({ totalStrength: total }).where(eq(teams.id, teamId));

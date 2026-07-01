@@ -1,7 +1,7 @@
 /**
  * Team balancing.
  *
- * Visual rating is 1..4 where 1 = best player, 4 = weakest.
+ * Visual rating is 1..6 where 1 = best player, 6 = weakest.
  * For balancing we invert to "strength" where higher = better:
  *   rating 1 -> strength 4
  *   rating 2 -> strength 3
@@ -14,7 +14,7 @@
  */
 
 export function ratingToStrength(rating: number): number {
-  return 5 - rating; // 1->4, 2->3, 3->2, 4->1
+  return 7 - rating; // 1->6, 2->5, ... 6->1 (1 = best)
 }
 
 export type BalancePlayer = {

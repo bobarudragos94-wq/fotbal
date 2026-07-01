@@ -63,7 +63,7 @@ export async function addDemoPlayersAction(_p: ActionResult | null, form: FormDa
         passwordHash: hash,
       });
       // Spread ratings 1..4; leave the last 5 unrated so the vote flow is testable.
-      const rating = idx >= DEMO_TARGET - 5 ? null : ((idx % 4) + 1);
+      const rating = idx >= DEMO_TARGET - 5 ? null : ((idx % 6) + 1);
       await db.insert(locationMembers).values({
         id: newId(),
         locationId,

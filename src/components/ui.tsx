@@ -140,6 +140,8 @@ export function RatingDot({
 }) {
   if (rating == null) return showUnrated ? <Badge tone="amber">Fără rating</Badge> : null;
   if (!reveal) return null;
-  const tone: BadgeTone = rating === 1 ? "green" : rating === 2 ? "brand" : rating === 3 ? "slate" : "red";
+  // 1 = best … 6 = weakest
+  const tone: BadgeTone =
+    rating <= 2 ? "green" : rating === 3 ? "brand" : rating === 4 ? "slate" : rating === 5 ? "amber" : "red";
   return <Badge tone={tone}>★ {rating}</Badge>;
 }

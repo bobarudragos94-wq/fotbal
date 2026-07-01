@@ -109,7 +109,7 @@ async function main() {
   const ratingsPip: Record<string, number> = {};
   pip.forEach((nm, i) => {
     // spread ratings 1..4
-    ratingsPip[nm] = ((i % 4) + 1);
+    ratingsPip[nm] = ((i % 6) + 1);
   });
   // Make one player unrated to demo voting (last one)
   const unratedName = pip[17];
@@ -205,7 +205,7 @@ async function main() {
   const mil = names.slice(5, 15); // 10 players
   for (let i = 0; i < mil.length; i++) {
     const role = i === 0 ? "admin" : "player";
-    const rating = i >= 8 ? null : ((i % 4) + 1); // last two unrated
+    const rating = i >= 8 ? null : ((i % 6) + 1); // last two unrated
     await addMember(militari, playerIds[mil[i]], role, rating);
   }
   const milMatch = newId();

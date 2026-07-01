@@ -241,7 +241,7 @@ export default async function MatchPage({
           <section>
             <SectionTitle>Votează cei fără rating</SectionTitle>
             <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
-              Lista este blocată. Vote where these players belong (1 = top, 4 = beginner).
+              Lista este blocată. Votează unde se încadrează acești jucători (1 = top, 6 = începător).
               {ctx.isAdmin ? " Ca admin, confirmă fiecare rating final ca să închizi votul." : " Adminul confirmă ratingul final."}
             </p>
             <div className="space-y-3">
@@ -265,8 +265,8 @@ export default async function MatchPage({
                   {p.userId !== ctx.user.id && (
                     <>
                       <p className="mb-1 text-xs font-medium text-slate-500 dark:text-slate-400">Votul tău</p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[1, 2, 3, 4].map((r) => (
+                      <div className="grid grid-cols-3 gap-2">
+                        {[1, 2, 3, 4, 5, 6].map((r) => (
                           <InlineAction
                             key={r}
                             action={castRatingVoteAction}
@@ -284,8 +284,8 @@ export default async function MatchPage({
                   {ctx.isAdmin && (
                     <>
                       <p className="mb-1 mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">Confirmă ratingul final</p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[1, 2, 3, 4].map((r) => (
+                      <div className="grid grid-cols-3 gap-2">
+                        {[1, 2, 3, 4, 5, 6].map((r) => (
                           <InlineAction
                             key={r}
                             action={setPlayerRatingAction}

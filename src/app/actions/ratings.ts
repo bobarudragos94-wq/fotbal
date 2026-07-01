@@ -18,7 +18,7 @@ export async function castRatingVoteAction(_p: ActionResult | null, form: FormDa
     const locationId = s(form.get("locationId"));
     const targetUserId = s(form.get("targetUserId"));
     const rating = Number(s(form.get("rating")));
-    if (![1, 2, 3, 4].includes(rating)) return fail("Ratingul trebuie să fie 1–4.");
+    if (![1, 2, 3, 4, 5, 6].includes(rating)) return fail("Ratingul trebuie să fie 1–6.");
 
     await assertLocationMember(user, locationId);
     if (targetUserId === user.id) return fail("Nu îți poți vota propriul rating.");
@@ -64,7 +64,7 @@ export async function setPlayerRatingAction(_p: ActionResult | null, form: FormD
     const locationId = s(form.get("locationId"));
     const targetUserId = s(form.get("targetUserId"));
     const rating = Number(s(form.get("rating")));
-    if (![1, 2, 3, 4].includes(rating)) return fail("Ratingul trebuie să fie 1–4.");
+    if (![1, 2, 3, 4, 5, 6].includes(rating)) return fail("Ratingul trebuie să fie 1–6.");
     await assertLocationAdmin(user, locationId);
 
     await db

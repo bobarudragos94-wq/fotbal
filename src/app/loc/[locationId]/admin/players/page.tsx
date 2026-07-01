@@ -57,9 +57,11 @@ export default async function AdminPlayersPage({ params }: { params: { locationI
                 options={[
                   { value: "", label: "—" },
                   { value: "1", label: "1 · Top" },
-                  { value: "2", label: "2 · Bun" },
-                  { value: "3", label: "3 · Mediu" },
-                  { value: "4", label: "4 · Începător" },
+                  { value: "2", label: "2 · Foarte bun" },
+                  { value: "3", label: "3 · Bun" },
+                  { value: "4", label: "4 · Mediu" },
+                  { value: "5", label: "5 · Slab" },
+                  { value: "6", label: "6 · Începător" },
                 ]}
               />
             </div>

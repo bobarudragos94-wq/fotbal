@@ -11,13 +11,15 @@ export function proposeRating(votes: number[]): {
   const mid = Math.floor(sorted.length / 2);
   const median =
     sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-  const rounded = Math.min(4, Math.max(1, Math.round(mean)));
+  const rounded = Math.min(6, Math.max(1, Math.round(mean)));
   return { mean: Math.round(mean * 100) / 100, median, rounded, count: votes.length };
 }
 
 export const RATING_LABELS: Record<number, string> = {
   1: "Top",
-  2: "Bun",
-  3: "Mediu",
-  4: "Începător",
+  2: "Foarte bun",
+  3: "Bun",
+  4: "Mediu",
+  5: "Slab",
+  6: "Începător",
 };
