@@ -24,6 +24,7 @@ import {
   deleteGameAction,
   togglePaidAction,
   saveScorersAction,
+  adminSetRsvpAction,
 } from "@/app/actions/matches";
 import { castRatingVoteAction } from "@/app/actions/ratings";
 import { fillMatchWithDemosAction } from "@/app/actions/demo";
@@ -501,12 +502,12 @@ export default async function MatchPage({
         <section>
           <SectionTitle>Participanți</SectionTitle>
           <div className="space-y-3">
-            <ParticipantList title="Confirmați" tone="green" rows={going} isAdmin={ctx.isAdmin} match={match} showRating />
+            <ParticipantList title="Confirmați" tone="green" rows={going} isAdmin={ctx.isAdmin} match={match} showRating remove />
             {waitlist.length > 0 && (
               <ParticipantList title="Rezerve" tone="blue" rows={waitlist} isAdmin={ctx.isAdmin} match={match} promote />
             )}
-            {maybe.length > 0 && <ParticipantList title="Poate" tone="amber" rows={maybe} isAdmin={ctx.isAdmin} match={match} />}
-            {declined.length > 0 && <ParticipantList title="Nu vin" tone="red" rows={declined} isAdmin={ctx.isAdmin} match={match} />}
+            {maybe.length > 0 && <ParticipantList title="Poate" tone="amber" rows={maybe} isAdmin={ctx.isAdmin} match={match} remove />}
+            {declined.length > 0 && <ParticipantList title="Nu vin" tone="red" rows={declined} isAdmin={ctx.isAdmin} match={match} readd />}
             {participants.length === 0 && <EmptyState title="Niciun răspuns încă" hint="Fii primul care confirmă." />}
           </div>
         </section>
@@ -555,6 +556,8 @@ function ParticipantList({
   match,
   showRating,
   promote,
+  remove,
+  readd,
 }: {
   title: string;
   tone: "green" | "amber" | "red" | "blue";
@@ -563,7 +566,10 @@ function ParticipantList({
   match: { id: string; status: string };
   showRating?: boolean;
   promote?: boolean;
+  remove?: boolean;
+  readd?: boolean;
 }) {
+  const canEdit = isAdmin && match.status !== "finished";
   return (
     <Card className="p-0">
       <div className="flex items-center justify-between px-4 py-2.5">
@@ -577,9 +583,28 @@ function ParticipantList({
               <Avatar name={p.name} url={p.avatarUrl} size={32} />
               <span className="flex-1 truncate text-sm font-medium">{p.name}</span>
               {showRating && <RatingDot rating={p.rating} reveal={isAdmin} showUnrated={isAdmin} />}
-              {promote && isAdmin && match.status !== "finished" && (
+              {promote && canEdit && (
                 <InlineAction action={promoteWaitlistAction} hidden={{ matchId: match.id, participantId: p.participantId }} className="btn-accent btn-sm">
                   Promovează
+                </InlineAction>
+              )}
+              {remove && canEdit && (
+                <InlineAction
+                  action={adminSetRsvpAction}
+                  hidden={{ matchId: match.id, participantId: p.participantId, status: "declined" }}
+                  className="btn-ghost btn-sm"
+                  confirm={`Scoți ${p.name} de la meci (îl treci pe „Nu vine")?`}
+                >
+                  Scoate
+                </InlineAction>
+              )}
+              {readd && canEdit && (
+                <InlineAction
+                  action={adminSetRsvpAction}
+                  hidden={{ matchId: match.id, participantId: p.participantId, status: "going" }}
+                  className="btn-accent btn-sm"
+                >
+                  Adaugă
                 </InlineAction>
               )}
             </div>

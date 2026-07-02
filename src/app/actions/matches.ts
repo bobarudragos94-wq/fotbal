@@ -218,6 +218,41 @@ export async function promoteWaitlistAction(_p: ActionResult | null, form: FormD
   });
 }
 
+/** Admin overrides a player's RSVP (e.g. mark a "going" player as "declined"). */
+export async function adminSetRsvpAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
+  return guard(async () => {
+    const user = await requireUser();
+    const matchId = s(form.get("matchId"));
+    const participantId = s(form.get("participantId"));
+    const status = s(form.get("status")) as "going" | "maybe" | "declined" | "waitlist";
+    const m = await loadMatch(matchId);
+    if (!m) return fail("Meci negăsit.");
+    await assertLocationAdmin(user, m.locationId);
+    if (m.status === "finished") return fail("Meciul este încheiat.");
+
+    const part = (
+      await db.select().from(matchParticipants).where(eq(matchParticipants.id, participantId)).limit(1)
+    )[0];
+    if (!part || part.matchId !== matchId) return fail("Jucător negăsit.");
+
+    const wasGoing = part.status === "going";
+    // Dropping someone from the squad also removes any team assignment.
+    await db
+      .update(matchParticipants)
+      .set({ status, teamId: status === "going" ? part.teamId : null })
+      .where(eq(matchParticipants.id, participantId));
+
+    // While the list is still open, fill the freed spot from the waitlist.
+    if (wasGoing && status !== "going" && m.status === "open") {
+      await promoteFirstWaitlist(matchId, m.maxPlayers);
+    }
+
+    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
+    const labels = { going: "Vin", maybe: "Poate", declined: "Nu vin", waitlist: "Rezerve" } as const;
+    return ok(`Jucător mutat la „${labels[status]}".`);
+  });
+}
+
 /* --------------------------- Rules confirmation --------------------------- */
 
 export async function confirmRulesAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
