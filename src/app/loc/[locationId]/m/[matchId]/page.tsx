@@ -32,9 +32,11 @@ import { AppBar } from "@/components/AppBar";
 import { Card, SectionTitle, Badge, StatusBadge, Avatar, RatingDot, EmptyState } from "@/components/ui";
 import { ActionForm, SubmitButton, InlineAction } from "@/components/Form";
 import { SelectSubmit } from "@/components/SelectSubmit";
+import { Stepper } from "@/components/Stepper";
 import { Icon } from "@/components/icons";
 import { formatDateTime, money } from "@/lib/format";
 import { RATING_LABELS } from "@/lib/rating";
+import { shortTeamName } from "@/lib/teams";
 
 const TEAM_STYLES = [
   "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900",
@@ -326,7 +328,7 @@ export default async function MatchPage({
                               name="teamId"
                               value={t.id}
                               hidden={{ matchId: match.id, userId: p.userId }}
-                              options={[...teams.map((tt) => ({ value: tt.id, label: tt.name })), { value: "", label: "Rezervă" }]}
+                              options={[...teams.map((tt) => ({ value: tt.id, label: shortTeamName(tt.name) })), { value: "", label: "Rezervă" }]}
                             />
                           ) : (
                             <RatingDot rating={p.rating} reveal={ctx.isAdmin} showUnrated={ctx.isAdmin} />
@@ -356,7 +358,7 @@ export default async function MatchPage({
                             name="teamId"
                             value=""
                             hidden={{ matchId: match.id, userId: p.userId }}
-                            options={[{ value: "", label: "Rezervă" }, ...teams.map((tt) => ({ value: tt.id, label: `→ ${tt.name}` }))]}
+                            options={[{ value: "", label: "Rezervă" }, ...teams.map((tt) => ({ value: tt.id, label: `→ ${shortTeamName(tt.name)}` }))]}
                           />
                         ) : (
                           <RatingDot rating={p.rating} />
@@ -414,14 +416,14 @@ export default async function MatchPage({
             {games.length > 0 && (
               <div className="mb-3 space-y-2">
                 {games.map((g) => (
-                  <Card key={g.id} className="flex items-center justify-between py-2.5">
-                    <span className="text-sm font-medium">{teamName.get(g.homeTeamId)}</span>
-                    <span className="rounded-lg bg-slate-900 px-3 py-1 font-bold text-white dark:bg-slate-700">
+                  <Card key={g.id} className="flex items-center gap-2 py-2.5">
+                    <span className="min-w-0 flex-1 truncate text-right text-sm font-medium">{teamName.get(g.homeTeamId)}</span>
+                    <span className="shrink-0 rounded-lg bg-slate-900 px-3 py-1 font-bold text-white dark:bg-slate-700">
                       {g.homeScore} – {g.awayScore}
                     </span>
-                    <span className="text-sm font-medium">{teamName.get(g.awayTeamId)}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{teamName.get(g.awayTeamId)}</span>
                     {ctx.isAdmin && match.status !== "finished" && (
-                      <InlineAction action={deleteGameAction} hidden={{ gameId: g.id, matchId: match.id }} className="btn-ghost btn-sm h-8 min-h-0 px-2" confirm="Ștergi acest scor?">✕</InlineAction>
+                      <InlineAction action={deleteGameAction} hidden={{ gameId: g.id, matchId: match.id }} className="btn-ghost btn-sm h-8 min-h-0 shrink-0 px-2" confirm="Ștergi acest scor?">✕</InlineAction>
                     )}
                   </Card>
                 ))}
@@ -433,19 +435,19 @@ export default async function MatchPage({
                 <p className="mb-2 text-sm font-medium">Adaugă rezultatul unui joc</p>
                 <ActionForm action={saveGameAction} className="space-y-2" resetOnSuccess>
                   <input type="hidden" name="matchId" value={match.id} />
-                  <div className="flex items-center gap-2">
-                    <select name="homeTeamId" className="input min-h-0 h-10 flex-1" defaultValue="">
-                      <option value="" disabled>Echipa 1</option>
-                      {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                    </select>
-                    <input name="homeScore" type="number" min={0} defaultValue={0} className="input min-h-0 h-10 w-16 text-center" />
-                    <span className="text-slate-400">–</span>
-                    <input name="awayScore" type="number" min={0} defaultValue={0} className="input min-h-0 h-10 w-16 text-center" />
-                    <select name="awayTeamId" className="input min-h-0 h-10 flex-1" defaultValue="">
-                      <option value="" disabled>Echipa 2</option>
-                      {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                    </select>
-                  </div>
+                  {/* One team per row: the select keeps its full width, so the team
+                      name stays readable on a phone instead of being clipped. */}
+                  {([["homeTeamId", "homeScore", "Echipa 1"], ["awayTeamId", "awayScore", "Echipa 2"]] as const).map(
+                    ([teamField, scoreField, placeholder]) => (
+                      <div key={teamField} className="flex items-center gap-2">
+                        <select name={teamField} className="input h-11 min-h-0 min-w-0 flex-1" defaultValue="">
+                          <option value="" disabled>{placeholder}</option>
+                          {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        </select>
+                        <Stepper name={scoreField} label={`Goluri ${placeholder}`} />
+                      </div>
+                    )
+                  )}
                   <SubmitButton className="btn-primary w-full btn-sm" pendingText="Se salvează…">Salvează scorul</SubmitButton>
                 </ActionForm>
               </Card>
@@ -480,13 +482,10 @@ export default async function MatchPage({
                       <div key={p.userId} className="flex items-center gap-3 py-2">
                         <Avatar name={p.name} url={p.avatarUrl} size={30} />
                         <span className="flex-1 truncate text-sm font-medium">{p.name}</span>
-                        <input
+                        <Stepper
                           name={`goals-${p.userId}`}
-                          type="number"
-                          min={0}
-                          max={99}
                           defaultValue={goalsByUser.get(p.userId) ?? 0}
-                          className="input h-10 min-h-0 w-16 text-center"
+                          label={p.name}
                         />
                       </div>
                     ))}

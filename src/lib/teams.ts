@@ -130,3 +130,8 @@ export function generateBalancedTeams(
 }
 
 export const TEAM_NAMES = ["A", "B", "C", "D", "E", "F"];
+
+/** "Team A" -> "A", for tight spots like the per-player move dropdowns. */
+export function shortTeamName(name: string): string {
+  return name.replace(/^team\s+/i, "");
+}
