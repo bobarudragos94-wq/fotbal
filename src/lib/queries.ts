@@ -137,7 +137,10 @@ export async function getMatches(locationId: string) {
       numTeams: matches.numTeams,
       playersPerTeam: matches.playersPerTeam,
       maxPlayers: matches.maxPlayers,
-      going: sql<number>`(select count(*) from match_participants mp where mp.match_id = ${matches.id} and mp.status = 'going')`,
+      // NOTE: the outer column must be written qualified ("matches"."id"). Passing
+      // ${matches.id} here renders as bare "id", which a correlated subquery resolves
+      // against its own table — silently counting nothing.
+      going: sql<number>`(select count(*) from match_participants mp where mp.match_id = "matches"."id" and mp.status = 'going')`,
     })
     .from(matches)
     .where(eq(matches.locationId, locationId))

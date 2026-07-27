@@ -13,7 +13,7 @@ export default async function SuperLocations() {
       name: locations.name,
       address: locations.address,
       inviteCode: locations.inviteCode,
-      members: sql<number>`(select count(*) from location_members lm where lm.location_id = ${locations.id})`,
+      members: sql<number>`(select count(*) from location_members lm where lm.location_id = "locations"."id")`,
     })
     .from(locations)
     .orderBy(locations.name);

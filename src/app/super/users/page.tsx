@@ -15,7 +15,7 @@ export default async function SuperUsers() {
       email: users.email,
       isSuperAdmin: users.isSuperAdmin,
       avatarUrl: users.avatarUrl,
-      memberships: sql<number>`(select count(*) from location_members lm where lm.user_id = ${users.id})`,
+      memberships: sql<number>`(select count(*) from location_members lm where lm.user_id = "users"."id")`,
     })
     .from(users)
     .orderBy(desc(users.createdAt));

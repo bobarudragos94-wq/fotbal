@@ -15,9 +15,9 @@ export default async function SuperOverview() {
       .select({
         id: locations.id,
         name: locations.name,
-        members: sql<number>`(select count(*) from location_members lm where lm.location_id = ${locations.id})`,
-        admins: sql<number>`(select count(*) from location_members lm where lm.location_id = ${locations.id} and lm.role = 'admin')`,
-        openMatches: sql<number>`(select count(*) from matches mt where mt.location_id = ${locations.id} and mt.status != 'finished')`,
+        members: sql<number>`(select count(*) from location_members lm where lm.location_id = "locations"."id")`,
+        admins: sql<number>`(select count(*) from location_members lm where lm.location_id = "locations"."id" and lm.role = 'admin')`,
+        openMatches: sql<number>`(select count(*) from matches mt where mt.location_id = "locations"."id" and mt.status != 'finished')`,
       })
       .from(locations)
       .orderBy(locations.name),
