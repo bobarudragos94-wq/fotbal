@@ -1,7 +1,10 @@
-export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };
+export type ActionResult =
+  | { ok: true; message?: string; data?: Record<string, string> }
+  | { ok: false; error: string };
 
-export function ok(message?: string): ActionResult {
-  return { ok: true, message };
+/** `data` carries small extras back to the client (e.g. a generated password). */
+export function ok(message?: string, data?: Record<string, string>): ActionResult {
+  return { ok: true, message, data };
 }
 export function fail(error: string): ActionResult {
   return { ok: false, error };

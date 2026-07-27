@@ -1,6 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
@@ -36,6 +36,25 @@ export async function destroySession(): Promise<void> {
     await db.delete(sessions).where(eq(sessions.id, token));
   }
   cookies().delete(COOKIE);
+}
+
+/** The session token in the current request's cookie, if any. */
+export function currentSessionToken(): string | undefined {
+  return cookies().get(COOKIE)?.value;
+}
+
+/**
+ * Log a user out of every device. Pass `exceptToken` to keep one session alive —
+ * used when an admin resets their own password and shouldn't be kicked out.
+ */
+export async function revokeSessions(userId: string, exceptToken?: string): Promise<void> {
+  await db
+    .delete(sessions)
+    .where(
+      exceptToken
+        ? and(eq(sessions.userId, userId), ne(sessions.id, exceptToken))
+        : eq(sessions.userId, userId)
+    );
 }
 
 export type AuthUser = {

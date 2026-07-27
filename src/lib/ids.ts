@@ -16,3 +16,16 @@ export function inviteCode(len = 6): string {
 export function sessionToken(): string {
   return randomBytes(32).toString("base64url");
 }
+
+/**
+ * Temporary password an admin can dictate over the phone or paste in WhatsApp:
+ * 3 groups of 4 unambiguous characters, e.g. "K7P2-M9RT-4XWQ".
+ */
+export function tempPassword(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(12);
+  const chars = Array.from(bytes, (b) => alphabet[b % alphabet.length]);
+  return [chars.slice(0, 4), chars.slice(4, 8), chars.slice(8, 12)]
+    .map((g) => g.join(""))
+    .join("-");
+}

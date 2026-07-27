@@ -4,15 +4,19 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, auditLogs } from "@/db/schema";
 import {
   createSession,
   destroySession,
   hashPassword,
   verifyPassword,
   requireUser,
+  revokeSessions,
+  currentSessionToken,
+  display,
 } from "@/lib/auth";
-import { newId } from "@/lib/ids";
+import { assertSuperAdmin } from "@/lib/permissions";
+import { newId, tempPassword } from "@/lib/ids";
 import { ActionResult, fail, ok, guard } from "@/lib/actionResult";
 
 function str(v: FormDataEntryValue | null): string {
@@ -85,5 +89,54 @@ export async function updateProfileAction(_prev: ActionResult | null, form: Form
       .where(eq(users.id, user.id));
     revalidatePath("/app/profile");
     return ok("Profil actualizat.");
+  });
+}
+
+/**
+ * Super admin resets any user's password.
+ * Leave the `password` field empty to get a generated temporary one.
+ * The target is logged out of all devices (the actor keeps the current session
+ * when resetting their own password).
+ */
+export async function superResetPasswordAction(
+  _prev: ActionResult | null,
+  form: FormData
+): Promise<ActionResult> {
+  return guard(async () => {
+    const actor = await requireUser();
+    assertSuperAdmin(actor);
+
+    const userId = str(form.get("userId"));
+    const custom = str(form.get("password"));
+    if (!userId) return fail("Lipsește utilizatorul.");
+    if (custom && custom.length < 6) return fail("Parola trebuie să aibă minim 6 caractere.");
+
+    const rows = await db
+      .select({ id: users.id, name: users.name, nickname: users.nickname, email: users.email })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const target = rows[0];
+    if (!target) return fail("Utilizatorul nu există.");
+
+    const password = custom || tempPassword();
+    await db
+      .update(users)
+      .set({ passwordHash: await hashPassword(password) })
+      .where(eq(users.id, target.id));
+
+    // Any stolen/stale session for this user dies with the old password.
+    await revokeSessions(target.id, target.id === actor.id ? currentSessionToken() : undefined);
+
+    await db.insert(auditLogs).values({
+      id: newId(),
+      locationId: null,
+      actorUserId: actor.id,
+      action: "super.reset_password",
+      detail: `${target.email} (${custom ? "manuală" : "generată"})`,
+    });
+
+    revalidatePath("/super/users");
+    return ok(`Parolă nouă pentru ${display(target)}.`, { password, email: target.email });
   });
 }

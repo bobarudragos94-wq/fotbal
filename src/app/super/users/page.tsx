@@ -3,6 +3,8 @@ import { users, locationMembers } from "@/db/schema";
 import { desc, sql } from "drizzle-orm";
 import { AppBar } from "@/components/AppBar";
 import { Card, Avatar, Badge } from "@/components/ui";
+import { ResetPassword } from "@/components/ResetPassword";
+import { superResetPasswordAction } from "@/app/actions/auth";
 import { displayName } from "@/lib/queries";
 
 export default async function SuperUsers() {
@@ -23,16 +25,19 @@ export default async function SuperUsers() {
       <AppBar title={`Utilizatori (${all.length})`} />
       <div className="space-y-3 px-4 py-4">
         {all.map((u) => (
-          <Card key={u.id} className="flex items-center gap-3">
-            <Avatar name={u.name} url={u.avatarUrl} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold">{u.name}</p>
-              <p className="truncate text-sm text-slate-500 dark:text-slate-400">{u.email}</p>
+          <Card key={u.id}>
+            <div className="flex items-center gap-3">
+              <Avatar name={u.name} url={u.avatarUrl} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold">{u.name}</p>
+                <p className="truncate text-sm text-slate-500 dark:text-slate-400">{u.email}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                {u.isSuperAdmin && <Badge tone="brand">Super</Badge>}
+                <Badge tone="slate">{Number(u.memberships)} loc</Badge>
+              </div>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              {u.isSuperAdmin && <Badge tone="brand">Super</Badge>}
-              <Badge tone="slate">{Number(u.memberships)} loc</Badge>
-            </div>
+            <ResetPassword action={superResetPasswordAction} userId={u.id} userName={u.name} />
           </Card>
         ))}
       </div>

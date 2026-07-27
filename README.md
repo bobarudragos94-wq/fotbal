@@ -300,6 +300,12 @@ falls back to the real name only if no nickname is set.
 - **All** create/edit/delete actions are Server Actions that re-validate the session **and**
   the caller's role for the target `location_id` — the UI is never the source of truth for auth.
 - Passwords hashed with bcrypt; sessions are httpOnly, `secure` in production, and revocable.
+- **Password reset is admin-driven** (no email is sent anywhere). On `/super/users` the super
+  admin resets any account: leave the field empty for a generated temporary password
+  (`K7P2-M9RT-4XWQ`) or type one. It is shown **once**, to be passed on out of band.
+  The reset revokes every session of that user, so old logins die with the old password —
+  except the actor's own session when they reset themselves. Each reset is written to
+  `audit_logs` as `super.reset_password`.
 
 ---
 
