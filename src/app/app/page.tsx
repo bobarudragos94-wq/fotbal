@@ -4,7 +4,7 @@ import { display } from "@/lib/auth";
 import { getUserLocations, getUserPendingRequests, getMemberCounts } from "@/lib/queries";
 import { PushPrompt } from "@/components/PushPrompt";
 import { AppBar } from "@/components/AppBar";
-import { PageHeader, Card, SectionTitle, EmptyState, Badge, LinkCard } from "@/components/ui";
+import { PageHeader, Card, SectionTitle, EmptyState, Badge, LinkCard, RatingDot } from "@/components/ui";
 import { Icon } from "@/components/icons";
 
 export default async function MyLocationsPage() {
@@ -60,8 +60,7 @@ export default async function MyLocationsPage() {
                   right={
                     <div className="flex items-center gap-1.5">
                       {l.role === "admin" && <Badge tone="brand">Admin</Badge>}
-                      {(l.role === "admin" || user.isSuperAdmin) &&
-                        (l.rating == null ? <Badge tone="amber">Fără rating</Badge> : <Badge tone="slate">★ {l.rating}</Badge>)}
+                      <RatingDot rating={l.rating} />
                     </div>
                   }
                 />

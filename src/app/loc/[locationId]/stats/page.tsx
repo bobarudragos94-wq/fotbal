@@ -1,7 +1,7 @@
 import { loadLocationContext } from "@/lib/locationContext";
 import { getLocationPlayerStats, getLocationMembers } from "@/lib/queries";
 import { AppBar } from "@/components/AppBar";
-import { Card, SectionTitle, Avatar, Badge } from "@/components/ui";
+import { Card, SectionTitle, Avatar, Badge, RatingDot } from "@/components/ui";
 
 export default async function StatsPage({ params }: { params: { locationId: string } }) {
   const ctx = await loadLocationContext(params.locationId);
@@ -64,6 +64,7 @@ export default async function StatsPage({ params }: { params: { locationId: stri
                           {m.name}
                           {m.userId === ctx.user.id && <span className="ml-1 text-xs text-slate-400">(tu)</span>}
                         </span>
+                        {m.rating != null && <RatingDot rating={m.rating} />}
                       </div>
                     </td>
                     <td className="px-2 py-2 text-center">{m.played}</td>

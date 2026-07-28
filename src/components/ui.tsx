@@ -125,21 +125,12 @@ export function Chevron() {
 }
 
 /**
- * Rating badge. Final ratings are admin-only: pass `reveal={false}` for
- * player-facing views to hide the number. "Unrated" stays visible when
- * `showUnrated` is true (e.g. so players can see who still needs votes).
+ * Rating badge. The confirmed final rating is public — everyone in the location
+ * sees it. What stays admin-only is the in-progress vote data (who voted what,
+ * the running average), which lives on the rate/vote screens.
  */
-export function RatingDot({
-  rating,
-  reveal = true,
-  showUnrated = true,
-}: {
-  rating: number | null;
-  reveal?: boolean;
-  showUnrated?: boolean;
-}) {
-  if (rating == null) return showUnrated ? <Badge tone="amber">Fără rating</Badge> : null;
-  if (!reveal) return null;
+export function RatingDot({ rating }: { rating: number | null }) {
+  if (rating == null) return <Badge tone="amber">Fără rating</Badge>;
   // 1 = best … 6 = weakest
   const tone: BadgeTone =
     rating <= 2 ? "green" : rating === 3 ? "brand" : rating === 4 ? "slate" : rating === 5 ? "amber" : "red";

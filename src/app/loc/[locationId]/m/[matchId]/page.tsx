@@ -331,7 +331,7 @@ export default async function MatchPage({
                               options={[...teams.map((tt) => ({ value: tt.id, label: shortTeamName(tt.name) })), { value: "", label: "Rezervă" }]}
                             />
                           ) : (
-                            <RatingDot rating={p.rating} reveal={ctx.isAdmin} showUnrated={ctx.isAdmin} />
+                            <RatingDot rating={p.rating} />
                           )}
                         </div>
                       ))}
@@ -581,7 +581,7 @@ function ParticipantList({
             <div key={p.userId} className="flex items-center gap-3 px-4 py-2.5">
               <Avatar name={p.name} url={p.avatarUrl} size={32} />
               <span className="flex-1 truncate text-sm font-medium">{p.name}</span>
-              {showRating && <RatingDot rating={p.rating} reveal={isAdmin} showUnrated={isAdmin} />}
+              {showRating && <RatingDot rating={p.rating} />}
               {promote && canEdit && (
                 <InlineAction action={promoteWaitlistAction} hidden={{ matchId: match.id, participantId: p.participantId }} className="btn-accent btn-sm">
                   Promovează

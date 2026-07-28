@@ -118,6 +118,9 @@ all match/score/rule/payment queries are filtered by `location_id` (directly or 
 2. Approved members vote 1–4 on `…/rate` (`rating_votes`).
 3. Admin sees the proposed rating (avg/median) on `…/admin/ratings` and confirms a final value,
    which writes `location_members.rating` and clears the votes.
+4. **Who sees what:** the confirmed final rating is public — every member sees it on the match
+   page and in the stats leaderboard, and their own on `/app`. The *in-progress* vote data
+   (vote count, running average, who voted what) stays admin-only.
 
 **Match day**
 1. Admin creates a match (`…/admin/new-match`) → status `open`, setting **max players** and **number of teams**.
