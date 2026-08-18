@@ -258,16 +258,14 @@ export default async function MatchPage({
                     <Avatar name={p.name} url={p.avatarUrl} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold">{p.name}</p>
-                      {ctx.isAdmin && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {p.proposal.count === 0
-                            ? "Niciun vot încă"
-                            : `${p.proposal.count} voturi · medie ★${formatRating(p.proposal.mean!)}`}
-                        </p>
-                      )}
+                      {/* The vote average is public — everyone follows where a player lands. */}
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {p.proposal.count === 0
+                          ? "Niciun vot încă"
+                          : `${p.proposal.count} voturi · medie ★${formatRating(p.proposal.mean!)}`}
+                      </p>
                     </div>
-                    {p.myVote &&
-                      (ctx.isAdmin ? <Badge tone="brand">Tu: ★{p.myVote}</Badge> : <Badge tone="green">Ai votat</Badge>)}
+                    {p.myVote && <Badge tone="brand">Tu: ★{p.myVote}</Badge>}
                   </div>
 
                   {p.userId !== ctx.user.id && (
@@ -503,10 +501,10 @@ export default async function MatchPage({
           <div className="space-y-3">
             <ParticipantList title="Confirmați" tone="green" rows={going} isAdmin={ctx.isAdmin} match={match} showRating remove />
             {waitlist.length > 0 && (
-              <ParticipantList title="Rezerve" tone="blue" rows={waitlist} isAdmin={ctx.isAdmin} match={match} showRating promote />
+              <ParticipantList title="Rezerve" tone="blue" rows={waitlist} isAdmin={ctx.isAdmin} match={match} promote />
             )}
-            {maybe.length > 0 && <ParticipantList title="Poate" tone="amber" rows={maybe} isAdmin={ctx.isAdmin} match={match} showRating remove />}
-            {declined.length > 0 && <ParticipantList title="Nu vin" tone="red" rows={declined} isAdmin={ctx.isAdmin} match={match} showRating readd />}
+            {maybe.length > 0 && <ParticipantList title="Poate" tone="amber" rows={maybe} isAdmin={ctx.isAdmin} match={match} remove />}
+            {declined.length > 0 && <ParticipantList title="Nu vin" tone="red" rows={declined} isAdmin={ctx.isAdmin} match={match} readd />}
             {participants.length === 0 && <EmptyState title="Niciun răspuns încă" hint="Fii primul care confirmă." />}
           </div>
         </section>
