@@ -5,7 +5,7 @@ import { AppBar } from "@/components/AppBar";
 import { Card, EmptyState, Avatar, Badge } from "@/components/ui";
 import { InlineAction } from "@/components/Form";
 import { Icon } from "@/components/icons";
-import { RATING_LABELS } from "@/lib/rating";
+import { RATING_LABELS, formatRating } from "@/lib/rating";
 
 export default async function RatePage({ params }: { params: { locationId: string } }) {
   const ctx = await loadLocationContext(params.locationId);
@@ -32,7 +32,7 @@ export default async function RatePage({ params }: { params: { locationId: strin
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {p.proposal.count === 0
                         ? "Niciun vot încă"
-                        : `${p.proposal.count} voturi · propus ★${p.proposal.rounded} (medie ${p.proposal.mean})`}
+                        : `${p.proposal.count} voturi · medie ★${formatRating(p.proposal.mean!)}`}
                     </p>
                   )}
                 </div>

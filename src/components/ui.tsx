@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { formatRating } from "@/lib/rating";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`card ${className}`}>{children}</div>;
@@ -131,8 +132,10 @@ export function Chevron() {
  */
 export function RatingDot({ rating }: { rating: number | null }) {
   if (rating == null) return <Badge tone="amber">Fără rating</Badge>;
-  // 1 = best … 6 = weakest
+  // 1 = best … 6 = weakest. Ratings are fractional (3.5), so tone goes by the
+  // nearest whole step.
+  const step = Math.round(rating);
   const tone: BadgeTone =
-    rating <= 2 ? "green" : rating === 3 ? "brand" : rating === 4 ? "slate" : rating === 5 ? "amber" : "red";
-  return <Badge tone={tone}>★ {rating}</Badge>;
+    step <= 2 ? "green" : step === 3 ? "brand" : step === 4 ? "slate" : step === 5 ? "amber" : "red";
+  return <Badge tone={tone}>★ {formatRating(rating)}</Badge>;
 }

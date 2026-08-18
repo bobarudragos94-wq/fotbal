@@ -6,6 +6,10 @@ import { AppBar } from "@/components/AppBar";
 import { Card, Avatar, Badge, RatingDot } from "@/components/ui";
 import { SelectSubmit } from "@/components/SelectSubmit";
 import { InlineAction } from "@/components/Form";
+import { RATING_LABELS } from "@/lib/rating";
+
+/** Manual rating steps: 1 … 6 in halves. */
+const RATING_STEPS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6];
 
 export default async function AdminPlayersPage({ params }: { params: { locationId: string } }) {
   const ctx = await requireLocationAdmin(params.locationId);
@@ -56,12 +60,10 @@ export default async function AdminPlayersPage({ params }: { params: { locationI
                 hidden={{ locationId: params.locationId, targetUserId: m.userId }}
                 options={[
                   { value: "", label: "—" },
-                  { value: "1", label: "1 · Top" },
-                  { value: "2", label: "2 · Foarte bun" },
-                  { value: "3", label: "3 · Bun" },
-                  { value: "4", label: "4 · Mediu" },
-                  { value: "5", label: "5 · Slab" },
-                  { value: "6", label: "6 · Începător" },
+                  ...RATING_STEPS.map((r) => ({
+                    value: String(r),
+                    label: Number.isInteger(r) ? `${r} · ${RATING_LABELS[r]}` : String(r),
+                  })),
                 ]}
               />
             </div>

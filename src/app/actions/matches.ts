@@ -12,7 +12,7 @@ import {
   locationMembers,
   ratingVotes,
 } from "@/db/schema";
-import { proposeRating } from "@/lib/rating";
+import { proposeRating, normalizeRating, formatRating } from "@/lib/rating";
 import { requireUser } from "@/lib/auth";
 import {
   assertLocationAdmin,
@@ -356,10 +356,11 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
 
     // Unrated players don't block generation: fall back to their community-vote
     // average, or a neutral rating derived from the rated players (or 3).
+    // All of these stay fractional — balancing works with the exact numbers.
     const unrated = going.filter((p) => p.rating == null);
     const ratedValues = going.filter((p) => p.rating != null).map((p) => p.rating as number);
     const neutral = ratedValues.length
-      ? Math.min(6, Math.max(1, Math.round(ratedValues.reduce((s, v) => s + v, 0) / ratedValues.length)))
+      ? normalizeRating(ratedValues.reduce((s, v) => s + v, 0) / ratedValues.length)
       : 3;
 
     const fallback = new Map<string, number>();
@@ -370,7 +371,7 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
         .where(eq(ratingVotes.locationId, m.locationId));
       for (const p of unrated) {
         const theirs = votes.filter((v) => v.targetUserId === p.userId).map((v) => v.rating);
-        fallback.set(p.userId, proposeRating(theirs).rounded ?? neutral);
+        fallback.set(p.userId, proposeRating(theirs).mean ?? neutral);
       }
     }
 
@@ -410,8 +411,8 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
     const autoNote = unrated.length > 0 ? ` ${unrated.length} jucător(i) fără rating au primit rating automat.` : "";
     return ok(
       (leftover > 0
-        ? `${teamSummary} generate (diferență ${result.spread}). ${leftover} jucător(i) au rămas fără echipă — vezi Rezerve.`
-        : `${teamSummary} generate (diferență ${result.spread}).`) + autoNote
+        ? `${teamSummary} generate (diferență ${formatRating(result.spread)}). ${leftover} jucător(i) au rămas fără echipă — vezi Rezerve.`
+        : `${teamSummary} generate (diferență ${formatRating(result.spread)}).`) + autoNote
     );
   });
 }

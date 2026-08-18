@@ -7,6 +7,7 @@ import { locationMembers, ratingVotes } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { assertLocationAdmin, assertLocationMember, getMembership } from "@/lib/permissions";
 import { newId } from "@/lib/ids";
+import { normalizeRating, formatRating, RATING_MIN, RATING_MAX } from "@/lib/rating";
 import { ActionResult, fail, ok, guard } from "@/lib/actionResult";
 
 const s = (v: FormDataEntryValue | null) => (v ?? "").toString().trim();
@@ -57,14 +58,21 @@ export async function castRatingVoteAction(_p: ActionResult | null, form: FormDa
   });
 }
 
-/** Admin sets / confirms a player's final rating (1..4). Clears votes. */
+/**
+ * Admin sets / confirms a player's final rating. Clears votes.
+ * The value is fractional on purpose (the vote average, e.g. 3.33, or a manual
+ * half step like 3.5) — team balancing uses it as-is instead of a rounded number.
+ */
 export async function setPlayerRatingAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
   return guard(async () => {
     const user = await requireUser();
     const locationId = s(form.get("locationId"));
     const targetUserId = s(form.get("targetUserId"));
-    const rating = Number(s(form.get("rating")));
-    if (![1, 2, 3, 4, 5, 6].includes(rating)) return fail("Ratingul trebuie să fie 1–6.");
+    const raw = Number(s(form.get("rating")));
+    if (!Number.isFinite(raw) || raw < RATING_MIN || raw > RATING_MAX) {
+      return fail("Ratingul trebuie să fie între 1 și 6.");
+    }
+    const rating = normalizeRating(raw);
     await assertLocationAdmin(user, locationId);
 
     await db
@@ -79,7 +87,8 @@ export async function setPlayerRatingAction(_p: ActionResult | null, form: FormD
 
     revalidatePath(`/loc/${locationId}/admin/ratings`);
     revalidatePath(`/loc/${locationId}/admin/players`);
-    return ok("Rating salvat.");
+    revalidatePath(`/loc/${locationId}/stats`);
+    return ok(`Rating salvat: ★${formatRating(rating)}.`);
   });
 }
 

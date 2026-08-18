@@ -63,7 +63,7 @@ export const locationMembers = sqliteTable("location_members", {
   locationId: text("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   role: text("role", { enum: ["admin", "player"] }).notNull().default("player"),
-  rating: integer("rating"), // 1..6, null = unrated
+  rating: real("rating"), // 1..6, fractional (vote average, e.g. 3.33); null = unrated
   status: text("status", { enum: ["active"] }).notNull().default("active"),
   joinedAt: integer("joined_at").notNull().default(now),
 }, (t) => ({
@@ -129,7 +129,7 @@ export const matchParticipants = sqliteTable("match_participants", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status", { enum: ["going", "maybe", "declined", "waitlist"] }).notNull(),
   // captured rating snapshot at lock time (used by balancing), null until locked
-  ratingSnapshot: integer("rating_snapshot"),
+  ratingSnapshot: real("rating_snapshot"),
   teamId: text("team_id"), // assigned team after generation
   rulesConfirmed: integer("rules_confirmed", { mode: "boolean" }).notNull().default(false),
   paid: integer("paid", { mode: "boolean" }).notNull().default(false),
@@ -144,7 +144,7 @@ export const teams = sqliteTable("teams", {
   matchId: text("match_id").notNull().references(() => matches.id, { onDelete: "cascade" }),
   name: text("name").notNull(), // "Team A"
   colorIndex: integer("color_index").notNull().default(0),
-  totalStrength: integer("total_strength").notNull().default(0),
+  totalStrength: real("total_strength").notNull().default(0),
 }, (t) => ({
   matchIdx: index("teams_match_idx").on(t.matchId),
 }));

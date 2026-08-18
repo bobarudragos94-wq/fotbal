@@ -35,7 +35,7 @@ import { SelectSubmit } from "@/components/SelectSubmit";
 import { Stepper } from "@/components/Stepper";
 import { Icon } from "@/components/icons";
 import { formatDateTime, money } from "@/lib/format";
-import { RATING_LABELS } from "@/lib/rating";
+import { RATING_LABELS, formatRating } from "@/lib/rating";
 import { shortTeamName } from "@/lib/teams";
 
 const TEAM_STYLES = [
@@ -262,7 +262,7 @@ export default async function MatchPage({
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                           {p.proposal.count === 0
                             ? "Niciun vot încă"
-                            : `${p.proposal.count} voturi · propus ★${p.proposal.rounded} (medie ${p.proposal.mean})`}
+                            : `${p.proposal.count} voturi · medie ★${formatRating(p.proposal.mean!)}`}
                         </p>
                       )}
                     </div>
@@ -315,7 +315,7 @@ export default async function MatchPage({
                   <Card key={t.id} className={`border-2 ${TEAM_STYLES[t.colorIndex % TEAM_STYLES.length]}`}>
                     <div className="mb-2 flex items-center justify-between">
                       <p className="font-bold">{t.name}</p>
-                      {ctx.isAdmin && <Badge tone="slate">Σ {t.totalStrength}</Badge>}
+                      {ctx.isAdmin && <Badge tone="slate">Σ {formatRating(t.totalStrength)}</Badge>}
                     </div>
                     <div className="space-y-1.5">
                       {teamPlayers.map((p) => (

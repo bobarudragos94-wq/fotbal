@@ -86,9 +86,9 @@ SQLite/libSQL via Drizzle (`src/db/schema.ts`). Timestamps are unix seconds.
 | `users` | Global accounts. `is_super_admin` is the only global role. |
 | `sessions` | DB-backed auth sessions (cookie token → user). |
 | `locations` | Tenants. Has a shareable `invite_code`. |
-| `location_members` | **User ↔ location** with per-location `role` (admin/player) and per-location `rating` (1–4, null = unrated). |
+| `location_members` | **User ↔ location** with per-location `role` (admin/player) and per-location `rating` (1–6, **fractional** — the vote average, e.g. `3.33`; null = unrated). |
 | `join_requests` | Pending/approved/rejected requests to join a location. |
-| `rating_votes` | Community votes (1–4) for an unrated player; one row per voter/target. |
+| `rating_votes` | Community votes (whole 1–6) for an unrated player; one row per voter/target. |
 | `matches` | Per-location match: time, `num_teams`, `players_per_team`, `max_players`, status, pitch cost, notes. |
 | `match_participants` | RSVP rows (going/maybe/declined/waitlist) + `team_id`, `rules_confirmed`, `paid`, `rating_snapshot`. |
 | `teams` | Generated teams for a match (`total_strength`, color). |
@@ -115,9 +115,10 @@ all match/score/rule/payment queries are filtered by `location_id` (directly or 
 
 **Rating an unrated player**
 1. New players start `Unrated`.
-2. Approved members vote 1–4 on `…/rate` (`rating_votes`).
-3. Admin sees the proposed rating (avg/median) on `…/admin/ratings` and confirms a final value,
-   which writes `location_members.rating` and clears the votes.
+2. Approved members vote a whole 1–6 on `…/rate` (`rating_votes`).
+3. Admin confirms the **vote average as-is** on `…/admin/ratings` (e.g. `★2.33` — one tap), or sets a
+   manual value in 0.5 steps. That writes `location_members.rating` and clears the votes. The rating
+   is deliberately *not* rounded: balancing uses the exact number.
 4. **Who sees what:** the confirmed final rating is public — every member sees it on the match
    page and in the stats leaderboard, and their own on `/app`. The *in-progress* vote data
    (vote count, running average, who voted what) stays admin-only.
@@ -130,7 +131,7 @@ all match/score/rule/payment queries are filtered by `location_id` (directly or 
 3. Players confirm "I've read the rules".
 4. Admin **locks the list** when it's final → the match becomes `locked` and the **rating vote opens**
    on the match page for any unrated confirmed players.
-5. Everyone votes 1–4 on unrated players; the admin **confirms each final rating**. Once all confirmed
+5. Everyone votes 1–6 on unrated players; the admin **confirms each final rating**. Once all confirmed
    players are rated, the admin **closes the vote & generates teams**.
 6. **Equal teams:** team size = `min(playersPerTeam, floor(confirmed / numTeams))`, so e.g. 16 confirmed
    with 3 teams → **3 × 5** and the app lists who is left **without a team (Reserves)**. The admin can
@@ -159,13 +160,13 @@ Ratings (confirm votes) · Create match · Match setup · everything on the matc
 
 ## 5. Team-balancing algorithm
 
-`src/lib/teams.ts`. Visual rating is **1 = best … 4 = weakest**, inverted to *strength* for math:
+`src/lib/teams.ts`. Visual rating is **1 = best … 6 = weakest** and is **fractional** (a player
+voted 3, 3, 4 is a `3.33`, never rounded), inverted to *strength* for math:
 
 ```
-rating 1 → strength 4
-rating 2 → strength 3
-rating 3 → strength 2
-rating 4 → strength 1
+rating 1    → strength 6
+rating 3.5  → strength 3.5
+rating 6    → strength 1
 ```
 
 **Controlled randomization, equal team sizes** (not pure random):
@@ -176,11 +177,15 @@ rating 4 → strength 1
 3. Generate ~800 random candidate splits. Each candidate shuffles players, randomly picks which
    `teamSize × numTeams` play (the rest are that candidate's leftovers), then greedily assigns the
    strongest remaining player to the currently weakest team.
-4. Score each candidate by **spread** = `max(team strength) − min(team strength)`.
-5. Keep the best-spread candidates and pick one **at random** among them.
+4. **Refine** each candidate by local search: swap a player from the strongest team with one from the
+   weakest whenever that narrows the gap. Only those two totals change and both move inward, so the
+   spread never gets worse. This is what fractional ratings buy — a single 3.5-for-3 swap closes gaps
+   that whole numbers cannot express.
+5. Score each candidate by **spread** = `max(team strength) − min(team strength)`.
+6. Keep the best-spread candidates and pick one **at random** among them.
 
-→ Teams are always equal-sized and near-balanced (spread typically 0–2), and **Regenerate** yields a
-fresh but still fair split. Examples: 18 players / 3 teams → `3 × 6` (no reserves);
+→ Teams are always equal-sized and near-balanced (spread typically well under 0.5 with fractional
+ratings, vs ~3 when ratings were rounded), and **Regenerate** yields a fresh but still fair split. Examples: 18 players / 3 teams → `3 × 6` (no reserves);
 16 players / 3 teams → `3 × 5`, with 1 player listed under **Reserves**.
 
 Scoring/standings (`src/lib/standings.ts`): win = 3, draw = 1, loss = 0; ranked by points,

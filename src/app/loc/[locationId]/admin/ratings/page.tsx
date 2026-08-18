@@ -5,7 +5,10 @@ import { AppBar } from "@/components/AppBar";
 import { Card, EmptyState, Avatar, Badge } from "@/components/ui";
 import { InlineAction } from "@/components/Form";
 import { Icon } from "@/components/icons";
-import { RATING_LABELS } from "@/lib/rating";
+import { RATING_LABELS, formatRating } from "@/lib/rating";
+
+/** Manual override steps: 1 … 6 in halves. */
+const MANUAL_STEPS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6];
 
 export default async function AdminRatingsPage({ params }: { params: { locationId: string } }) {
   const ctx = await requireLocationAdmin(params.locationId);
@@ -46,23 +49,42 @@ export default async function AdminRatingsPage({ params }: { params: { locationI
                   <p className="truncate font-semibold">{p.name}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {p.proposal.count > 0
-                      ? `${p.proposal.count} voturi · medie ${p.proposal.mean} · mediană ${p.proposal.median}`
+                      ? `${p.proposal.count} voturi · medie ${formatRating(p.proposal.mean!)} · mediană ${p.proposal.median}`
                       : "Niciun vot încă"}
                   </p>
                 </div>
-                {p.proposal.rounded && <Badge tone="amber">Propus ★{p.proposal.rounded}</Badge>}
+                {p.proposal.mean != null && <Badge tone="amber">Propus ★{formatRating(p.proposal.mean)}</Badge>}
               </div>
-              <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">Confirmă ratingul final</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3, 4, 5, 6].map((r) => (
+
+              {p.proposal.mean != null && (
+                <InlineAction
+                  action={setPlayerRatingAction}
+                  hidden={{
+                    locationId: params.locationId,
+                    targetUserId: p.userId,
+                    rating: String(p.proposal.mean),
+                  }}
+                  className="btn-primary mb-3 w-full"
+                >
+                  Confirmă media votată · ★{formatRating(p.proposal.mean)}
+                </InlineAction>
+              )}
+
+              <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                Sau pune tu nota (pași de 0,5)
+              </p>
+              <div className="grid grid-cols-4 gap-2">
+                {MANUAL_STEPS.map((r) => (
                   <InlineAction
                     key={r}
                     action={setPlayerRatingAction}
                     hidden={{ locationId: params.locationId, targetUserId: p.userId, rating: String(r) }}
-                    className={`btn-sm w-full flex-col gap-0 py-2 ${p.proposal.rounded === r ? "btn-accent" : "btn-ghost"}`}
+                    className="btn-ghost btn-sm w-full flex-col gap-0 py-2"
                   >
-                    <span className="text-base font-bold">{r}</span>
-                    <span className="text-[10px] font-normal opacity-80">{RATING_LABELS[r]}</span>
+                    <span className="text-base font-bold">{formatRating(r)}</span>
+                    <span className="w-full truncate text-[10px] font-normal opacity-80">
+                      {Number.isInteger(r) ? RATING_LABELS[r] : " "}
+                    </span>
                   </InlineAction>
                 ))}
               </div>
