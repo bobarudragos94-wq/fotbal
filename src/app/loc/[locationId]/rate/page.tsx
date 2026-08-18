@@ -1,15 +1,22 @@
 import { loadLocationContext } from "@/lib/locationContext";
-import { getUnratedPlayers } from "@/lib/queries";
+import { getUnratedPlayers, getLocationMembers } from "@/lib/queries";
 import { castRatingVoteAction } from "@/app/actions/ratings";
 import { AppBar } from "@/components/AppBar";
-import { Card, EmptyState, Avatar, Badge } from "@/components/ui";
+import { Card, SectionTitle, EmptyState, Avatar, Badge, RatingDot } from "@/components/ui";
 import { InlineAction } from "@/components/Form";
 import { Icon } from "@/components/icons";
 import { RATING_LABELS, formatRating } from "@/lib/rating";
 
 export default async function RatePage({ params }: { params: { locationId: string } }) {
   const ctx = await loadLocationContext(params.locationId);
-  const unrated = await getUnratedPlayers(params.locationId, ctx.user.id);
+  const [unrated, members] = await Promise.all([
+    getUnratedPlayers(params.locationId, ctx.user.id),
+    getLocationMembers(params.locationId),
+  ]);
+  // Final notes, best first — this is where players come looking after they vote.
+  const rated = members
+    .filter((m) => m.rating != null)
+    .sort((a, b) => (a.rating as number) - (b.rating as number));
 
   return (
     <>
@@ -58,6 +65,29 @@ export default async function RatePage({ params }: { params: { locationId: strin
               )}
             </Card>
           ))
+        )}
+
+        {rated.length > 0 && (
+          <section>
+            <SectionTitle>Note finale ({rated.length})</SectionTitle>
+            <Card className="p-0">
+              <div className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                {rated.map((m) => (
+                  <div key={m.userId} className="flex items-center gap-3 px-4 py-2.5">
+                    <Avatar name={m.name} url={m.avatarUrl} size={32} />
+                    <span className="flex-1 truncate text-sm font-medium">
+                      {m.name}
+                      {m.userId === ctx.user.id && <span className="ml-1 text-xs text-slate-400">(tu)</span>}
+                    </span>
+                    <RatingDot rating={m.rating} />
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <p className="mt-2 text-center text-xs text-slate-400">
+              Nota finală este media voturilor, confirmată de admin. Voturile individuale rămân private.
+            </p>
+          </section>
         )}
       </div>
     </>

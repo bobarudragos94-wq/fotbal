@@ -503,10 +503,10 @@ export default async function MatchPage({
           <div className="space-y-3">
             <ParticipantList title="Confirmați" tone="green" rows={going} isAdmin={ctx.isAdmin} match={match} showRating remove />
             {waitlist.length > 0 && (
-              <ParticipantList title="Rezerve" tone="blue" rows={waitlist} isAdmin={ctx.isAdmin} match={match} promote />
+              <ParticipantList title="Rezerve" tone="blue" rows={waitlist} isAdmin={ctx.isAdmin} match={match} showRating promote />
             )}
-            {maybe.length > 0 && <ParticipantList title="Poate" tone="amber" rows={maybe} isAdmin={ctx.isAdmin} match={match} remove />}
-            {declined.length > 0 && <ParticipantList title="Nu vin" tone="red" rows={declined} isAdmin={ctx.isAdmin} match={match} readd />}
+            {maybe.length > 0 && <ParticipantList title="Poate" tone="amber" rows={maybe} isAdmin={ctx.isAdmin} match={match} showRating remove />}
+            {declined.length > 0 && <ParticipantList title="Nu vin" tone="red" rows={declined} isAdmin={ctx.isAdmin} match={match} showRating readd />}
             {participants.length === 0 && <EmptyState title="Niciun răspuns încă" hint="Fii primul care confirmă." />}
           </div>
         </section>
