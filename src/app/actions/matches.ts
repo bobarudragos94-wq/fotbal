@@ -417,47 +417,6 @@ export async function generateTeamsAction(_p: ActionResult | null, form: FormDat
   });
 }
 
-/** Admin moves a player to a specific team (manual edit). */
-export async function movePlayerToTeamAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {
-  return guard(async () => {
-    const user = await requireUser();
-    const matchId = s(form.get("matchId"));
-    const userId = s(form.get("userId"));
-    const teamIdRaw = s(form.get("teamId"));
-    const teamId = teamIdRaw || null; // empty -> bench to reserves
-    const m = await loadMatch(matchId);
-    if (!m) return fail("Meci negăsit.");
-    await assertLocationAdmin(user, m.locationId);
-
-    await db
-      .update(matchParticipants)
-      .set({ teamId })
-      .where(and(eq(matchParticipants.matchId, matchId), eq(matchParticipants.userId, userId)));
-    await recomputeTeamStrengths(matchId, m.locationId);
-    revalidatePath(`/loc/${m.locationId}/m/${matchId}`);
-    return ok(teamId ? "Jucător mutat." : "Jucător trecut la rezerve.");
-  });
-}
-
-async function recomputeTeamStrengths(matchId: string, locationId: string) {
-  const rows = await db
-    .select({ teamId: matchParticipants.teamId, rating: locationMembers.rating })
-    .from(matchParticipants)
-    .innerJoin(
-      locationMembers,
-      and(eq(locationMembers.userId, matchParticipants.userId), eq(locationMembers.locationId, locationId))
-    )
-    .where(eq(matchParticipants.matchId, matchId));
-  const totals = new Map<string, number>();
-  for (const r of rows) {
-    if (!r.teamId || r.rating == null) continue;
-    totals.set(r.teamId, (totals.get(r.teamId) ?? 0) + (7 - r.rating));
-  }
-  for (const [teamId, total] of totals) {
-    await db.update(teams).set({ totalStrength: total }).where(eq(teams.id, teamId));
-  }
-}
-
 /* -------------------------------- Scores -------------------------------- */
 
 export async function saveGameAction(_p: ActionResult | null, form: FormData): Promise<ActionResult> {

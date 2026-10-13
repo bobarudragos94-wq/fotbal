@@ -19,7 +19,6 @@ import {
   generateTeamsAction,
   setMatchStatusAction,
   promoteWaitlistAction,
-  movePlayerToTeamAction,
   saveGameAction,
   deleteGameAction,
   togglePaidAction,
@@ -31,12 +30,10 @@ import { fillMatchWithDemosAction } from "@/app/actions/demo";
 import { AppBar } from "@/components/AppBar";
 import { Card, SectionTitle, Badge, StatusBadge, Avatar, RatingDot, EmptyState } from "@/components/ui";
 import { ActionForm, SubmitButton, InlineAction } from "@/components/Form";
-import { SelectSubmit } from "@/components/SelectSubmit";
 import { Stepper } from "@/components/Stepper";
 import { Icon } from "@/components/icons";
 import { formatDateTime, money } from "@/lib/format";
 import { RATING_LABELS, formatRating } from "@/lib/rating";
-import { shortTeamName } from "@/lib/teams";
 
 const TEAM_STYLES = [
   "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900",
@@ -320,17 +317,7 @@ export default async function MatchPage({
                         <div key={p.userId} className="flex items-center gap-2">
                           <Avatar name={p.name} url={p.avatarUrl} size={28} />
                           <span className="flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-100">{p.name}</span>
-                          {ctx.isAdmin && match.status !== "finished" ? (
-                            <SelectSubmit
-                              action={movePlayerToTeamAction}
-                              name="teamId"
-                              value={t.id}
-                              hidden={{ matchId: match.id, userId: p.userId }}
-                              options={[...teams.map((tt) => ({ value: tt.id, label: shortTeamName(tt.name) })), { value: "", label: "Rezervă" }]}
-                            />
-                          ) : (
-                            <RatingDot rating={p.rating} />
-                          )}
+                          <RatingDot rating={p.rating} />
                         </div>
                       ))}
                     </div>
@@ -350,17 +337,7 @@ export default async function MatchPage({
                       <div key={p.userId} className="flex items-center gap-2">
                         <Avatar name={p.name} url={p.avatarUrl} size={28} />
                         <span className="flex-1 truncate text-sm font-medium">{p.name}</span>
-                        {ctx.isAdmin && match.status !== "finished" ? (
-                          <SelectSubmit
-                            action={movePlayerToTeamAction}
-                            name="teamId"
-                            value=""
-                            hidden={{ matchId: match.id, userId: p.userId }}
-                            options={[{ value: "", label: "Rezervă" }, ...teams.map((tt) => ({ value: tt.id, label: `→ ${shortTeamName(tt.name)}` }))]}
-                          />
-                        ) : (
-                          <RatingDot rating={p.rating} />
-                        )}
+                        <RatingDot rating={p.rating} />
                       </div>
                     ))}
                   </div>
@@ -369,7 +346,8 @@ export default async function MatchPage({
             </div>
             {ctx.isAdmin && match.status !== "finished" && (
               <p className="mt-2 text-center text-xs text-slate-400">
-                Folosește meniurile ca să muți jucători între echipe sau să-i treci la rezerve.
+                Echipele sunt cele generate de algoritm. Dacă s-a schimbat lista, folosește
+                „Regenerează echipele".
               </p>
             )}
           </section>
