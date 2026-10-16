@@ -124,12 +124,13 @@ all match/score/rule/payment queries are filtered by `location_id` (directly or 
    (vote count, running average, who voted what) stays admin-only.
 
 **Guests (a friend from outside the app)**
-Each location has six guest slots, one per rating 1–6, created the first time an admin uses one.
-On a match page, **Control admin → Invitați**, an admin (or the super admin) taps the rating that
-fits the friend; the guest joins the list like any player and counts in team balancing. Tapping
-again removes them. Guest rows are user accounts with a random password marked by the
-`@invitat.local` email suffix (`src/lib/guests.ts`) — nobody can sign in as one, and they are left
-out of the stats leaderboard, the location player count and all notifications.
+On a match page, **Control admin → Invitați**, an admin (or the super admin) taps the rating 1–6 that
+fits the friend; the guest joins the list like any player and counts in team balancing. Any rating can
+be added repeatedly — each tap reuses a guest of that rating who is free, or mints a new one
+(`Invitat 3`, `Invitat 3 (2)`, …) — and every guest on the list has its own ✕ to take it back off.
+Guest rows are user accounts with a random password marked by the `@invitat.local` email suffix
+(`src/lib/guests.ts`) — nobody can sign in as one, and they are left out of the stats leaderboard,
+the location player count and all notifications.
 
 **Match day**
 1. Admin creates a match (`…/admin/new-match`) → status `open`, setting **max players** and **number of teams**.

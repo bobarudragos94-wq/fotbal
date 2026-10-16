@@ -35,7 +35,7 @@ import { Stepper } from "@/components/Stepper";
 import { Icon } from "@/components/icons";
 import { formatDateTime, money } from "@/lib/format";
 import { RATING_LABELS, formatRating } from "@/lib/rating";
-import { getLocationGuests, GUEST_SLOTS } from "@/lib/guests";
+import { getLocationGuests, GUEST_RATINGS } from "@/lib/guests";
 
 const TEAM_STYLES = [
   "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900",
@@ -81,11 +81,12 @@ export default async function MatchPage({
   // Confirmed players still without a team after generation (reserves).
   const reserves = teams.length > 0 ? going.filter((p) => p.teamId == null) : [];
 
-  // Guest slots (admin-only control): placeholders for friends from outside the app.
-  const guests = ctx.isAdmin ? await getLocationGuests(params.locationId) : [];
-  const guestBySlot = new Map(guests.map((g) => [g.slot, g]));
-  const onListUserIds = new Set(
-    participants.filter((p) => p.status === "going" || p.status === "waitlist").map((p) => p.userId)
+  // Guests (admin-only control): placeholders for friends from outside the app.
+  const guestIds = ctx.isAdmin
+    ? new Set((await getLocationGuests(params.locationId)).map((g) => g.userId))
+    : new Set<string>();
+  const guestsOnList = participants.filter(
+    (p) => guestIds.has(p.userId) && (p.status === "going" || p.status === "waitlist")
   );
 
   // Match-scoped rating voting (starts once the list is locked).
@@ -194,29 +195,49 @@ export default async function MatchPage({
                 <div className="rounded-xl border border-dashed border-slate-300 p-3 dark:border-slate-700">
                   <p className="text-sm font-semibold">Invitați</p>
                   <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
-                    Pentru prietenii aduși de cineva, care nu sunt în aplicație. Alege nota care i se
-                    potrivește — intră în listă ca orice jucător și în calculul echipelor. Apasă din nou ca
-                    să-l scoți.
+                    Pentru prietenii aduși de cineva, care nu sunt în aplicație. Apasă nota care i se
+                    potrivește — intră în listă ca orice jucător și în calculul echipelor. Poți adăuga
+                    oricâți, inclusiv mai mulți cu aceeași notă.
                   </p>
                   <div className="grid grid-cols-3 gap-2">
-                    {GUEST_SLOTS.map((slot) => {
-                      const guest = guestBySlot.get(slot);
-                      const onList = guest != null && onListUserIds.has(guest.userId);
+                    {GUEST_RATINGS.map((rating) => {
+                      const count = guestsOnList.filter((g) => g.rating === rating).length;
                       return (
                         <InlineAction
-                          key={slot}
-                          action={onList ? removeGuestFromMatchAction : addGuestToMatchAction}
-                          hidden={{ matchId: match.id, slot: String(slot) }}
-                          className={`btn-sm w-full flex-col gap-0 py-2 ${onList ? "btn-primary" : "btn-ghost"}`}
+                          key={rating}
+                          action={addGuestToMatchAction}
+                          hidden={{ matchId: match.id, rating: String(rating) }}
+                          className="btn-ghost btn-sm w-full flex-col gap-0 py-2"
                         >
-                          <span className="text-base font-bold">★{formatRating(guest?.rating ?? slot)}</span>
+                          <span className="text-base font-bold">+ ★{rating}</span>
                           <span className="text-[10px] font-normal opacity-80">
-                            {onList ? "pe listă" : "adaugă"}
+                            {count > 0 ? `${count} pe listă` : "adaugă"}
                           </span>
                         </InlineAction>
                       );
                     })}
                   </div>
+
+                  {guestsOnList.length > 0 && (
+                    <div className="mt-3 border-t border-slate-200 pt-2 dark:border-slate-700">
+                      <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                        Pe listă ({guestsOnList.length}) — apasă ✕ ca să scoți
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {guestsOnList.map((g) => (
+                          <InlineAction
+                            key={g.userId}
+                            action={removeGuestFromMatchAction}
+                            hidden={{ matchId: match.id, userId: g.userId }}
+                            className="btn-ghost btn-sm h-8 min-h-0 gap-1 px-2 text-xs"
+                          >
+                            {g.name}
+                            {g.status === "waitlist" && " · rezervă"} ✕
+                          </InlineAction>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
