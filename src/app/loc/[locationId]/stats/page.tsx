@@ -1,5 +1,6 @@
 import { loadLocationContext } from "@/lib/locationContext";
 import { getLocationPlayerStats, getLocationMembers } from "@/lib/queries";
+import { isGuestEmail } from "@/lib/guests";
 import { AppBar } from "@/components/AppBar";
 import { Card, SectionTitle, Avatar, Badge, RatingDot } from "@/components/ui";
 
@@ -23,6 +24,7 @@ export default async function StatsPage({ params }: { params: { locationId: stri
 
   // Leaderboard: everyone, ranked by goals, then wins, then played.
   const board = members
+    .filter((m) => !isGuestEmail(m.email)) // guest slots aren't real people
     .map((m) => ({ ...m, ...(agg.get(m.userId) ?? zero) }))
     .sort((a, b) => b.goals - a.goals || b.wins - a.wins || b.played - a.played);
 

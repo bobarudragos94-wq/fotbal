@@ -1,9 +1,10 @@
 import "server-only";
 import webpush from "web-push";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, notLike } from "drizzle-orm";
 import { db } from "@/db";
-import { locationMembers, notifications, pushSubscriptions } from "@/db/schema";
+import { locationMembers, notifications, pushSubscriptions, users } from "@/db/schema";
 import { newId } from "./ids";
+import { GUEST_EMAIL_SUFFIX } from "./guests";
 
 let vapidReady = false;
 function ensureVapid(): boolean {
@@ -48,13 +49,16 @@ export async function notifyMembers(locationId: string, payload: NotifyInput, ex
   // Fully best-effort: notifications must never break the action that triggers them
   // (e.g. if the tables aren't migrated yet).
   try {
+    // Guest slots have no one behind them — nothing to notify.
+    const notGuest = notLike(users.email, `%${GUEST_EMAIL_SUFFIX}`);
     const rows = await db
       .select({ userId: locationMembers.userId })
       .from(locationMembers)
+      .innerJoin(users, eq(users.id, locationMembers.userId))
       .where(
         exceptUserId
-          ? and(eq(locationMembers.locationId, locationId), ne(locationMembers.userId, exceptUserId))
-          : eq(locationMembers.locationId, locationId)
+          ? and(eq(locationMembers.locationId, locationId), ne(locationMembers.userId, exceptUserId), notGuest)
+          : and(eq(locationMembers.locationId, locationId), notGuest)
       );
     const userIds = rows.map((r) => r.userId);
     if (userIds.length === 0) return;

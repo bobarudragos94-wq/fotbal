@@ -26,6 +26,7 @@ import {
   adminSetRsvpAction,
 } from "@/app/actions/matches";
 import { castRatingVoteAction } from "@/app/actions/ratings";
+import { addGuestToMatchAction, removeGuestFromMatchAction } from "@/app/actions/guests";
 import { fillMatchWithDemosAction } from "@/app/actions/demo";
 import { AppBar } from "@/components/AppBar";
 import { Card, SectionTitle, Badge, StatusBadge, Avatar, RatingDot, EmptyState } from "@/components/ui";
@@ -34,6 +35,7 @@ import { Stepper } from "@/components/Stepper";
 import { Icon } from "@/components/icons";
 import { formatDateTime, money } from "@/lib/format";
 import { RATING_LABELS, formatRating } from "@/lib/rating";
+import { getLocationGuests, GUEST_SLOTS } from "@/lib/guests";
 
 const TEAM_STYLES = [
   "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900",
@@ -78,6 +80,13 @@ export default async function MatchPage({
 
   // Confirmed players still without a team after generation (reserves).
   const reserves = teams.length > 0 ? going.filter((p) => p.teamId == null) : [];
+
+  // Guest slots (admin-only control): placeholders for friends from outside the app.
+  const guests = ctx.isAdmin ? await getLocationGuests(params.locationId) : [];
+  const guestBySlot = new Map(guests.map((g) => [g.slot, g]));
+  const onListUserIds = new Set(
+    participants.filter((p) => p.status === "going" || p.status === "waitlist").map((p) => p.userId)
+  );
 
   // Match-scoped rating voting (starts once the list is locked).
   const goingIds = new Set(going.map((p) => p.userId));
@@ -181,6 +190,36 @@ export default async function MatchPage({
           <Card>
             <SectionTitle>Control admin</SectionTitle>
             <div className="space-y-3">
+              {match.status !== "finished" && (
+                <div className="rounded-xl border border-dashed border-slate-300 p-3 dark:border-slate-700">
+                  <p className="text-sm font-semibold">Invitați</p>
+                  <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                    Pentru prietenii aduși de cineva, care nu sunt în aplicație. Alege nota care i se
+                    potrivește — intră în listă ca orice jucător și în calculul echipelor. Apasă din nou ca
+                    să-l scoți.
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {GUEST_SLOTS.map((slot) => {
+                      const guest = guestBySlot.get(slot);
+                      const onList = guest != null && onListUserIds.has(guest.userId);
+                      return (
+                        <InlineAction
+                          key={slot}
+                          action={onList ? removeGuestFromMatchAction : addGuestToMatchAction}
+                          hidden={{ matchId: match.id, slot: String(slot) }}
+                          className={`btn-sm w-full flex-col gap-0 py-2 ${onList ? "btn-primary" : "btn-ghost"}`}
+                        >
+                          <span className="text-base font-bold">★{formatRating(guest?.rating ?? slot)}</span>
+                          <span className="text-[10px] font-normal opacity-80">
+                            {onList ? "pe listă" : "adaugă"}
+                          </span>
+                        </InlineAction>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {match.status === "open" && (
                 <>
                   <p className="text-sm text-slate-500 dark:text-slate-400">

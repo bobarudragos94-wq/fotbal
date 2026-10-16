@@ -7,6 +7,7 @@ import { Card, Avatar, Badge, RatingDot } from "@/components/ui";
 import { SelectSubmit } from "@/components/SelectSubmit";
 import { InlineAction } from "@/components/Form";
 import { RATING_LABELS } from "@/lib/rating";
+import { isGuestEmail } from "@/lib/guests";
 
 /** Manual rating steps: 1 … 6 in halves. */
 const RATING_STEPS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6];
@@ -47,6 +48,7 @@ export default async function AdminPlayersPage({ params }: { params: { locationI
                 {m.userId === ctx.user.id && <span className="ml-1 text-xs text-slate-400">(tu)</span>}
               </p>
               <div className="mt-0.5 flex items-center gap-1.5">
+                {isGuestEmail(m.email) && <Badge tone="slate">Invitat</Badge>}
                 {m.role === "admin" && <Badge tone="brand">Admin</Badge>}
                 <RatingDot rating={m.rating} />
               </div>

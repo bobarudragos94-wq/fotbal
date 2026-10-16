@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, notLike, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   locations,
@@ -17,6 +17,7 @@ import {
 } from "@/db/schema";
 import { computeStandings } from "./standings";
 import { proposeRating } from "./rating";
+import { GUEST_EMAIL_SUFFIX } from "./guests";
 
 /** Public display name: the nickname if set, otherwise the real name. */
 export const displayName = sql<string>`coalesce(nullif(${users.nickname}, ''), ${users.name})`;
@@ -42,7 +43,9 @@ export async function getMemberCounts(locationIds: string[]) {
   const rows = await db
     .select({ locationId: locationMembers.locationId, c: sql<number>`count(*)` })
     .from(locationMembers)
-    .where(inArray(locationMembers.locationId, locationIds))
+    .innerJoin(users, eq(users.id, locationMembers.userId))
+    // Guest slots are placeholders, not members of the group.
+    .where(and(inArray(locationMembers.locationId, locationIds), notLike(users.email, `%${GUEST_EMAIL_SUFFIX}`)))
     .groupBy(locationMembers.locationId);
   return new Map(rows.map((r) => [r.locationId, Number(r.c)]));
 }
